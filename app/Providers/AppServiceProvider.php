@@ -1,0 +1,31 @@
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Support\ServiceProvider;
+use Filament\Support\Assets\Css;
+use Filament\Support\Facades\FilamentAsset;
+
+class AppServiceProvider extends ServiceProvider
+{
+    /**
+     * Register any application services.
+     */
+    public function register(): void
+    {
+        //
+    }
+
+    /**
+     * Bootstrap any application services.
+     */
+    public function boot(): void
+    {
+        FilamentAsset::register([
+            Css::make('custom-stylesheet', public_path('css/custom-filament.css')),
+        ]);
+        
+        \Illuminate\Pagination\Paginator::useBootstrapFive();
+    }
+}
+

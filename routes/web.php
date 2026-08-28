@@ -32,7 +32,8 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // Authentication routes
-
+Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+Route::post('/register', [RegisterController::class, 'register'])->name('register.submit');
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'authenticate'])->name('authenticate');
 Route::match(['get', 'post'], '/logout', [LoginController::class, 'logout'])->name('logout');
@@ -49,6 +50,7 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::delete('/farmers/{farmer}', [FarmerVerificationController::class, 'destroy'])->name('admin.farmers.destroy');
     Route::put('/farmers/{farmer}', [FarmerVerificationController::class, 'update'])->name('admin.farmers.update');
     Route::get('/farmers/{farmer}/download/{path}', [FarmerVerificationController::class, 'download'])->name('admin.farmers.download');
+    Route::get('/farmers/{farmer}/pdf', [FarmerVerificationController::class, 'exportPdf'])->name('admin.farmers.pdf');
 
     Route::get('/farms', [FarmVerificationController::class, 'index'])->name('admin.farms.index');
     Route::get('/farms/create', [FarmVerificationController::class, 'create'])->name('admin.farms.create');

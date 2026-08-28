@@ -218,7 +218,8 @@
                                                         @else
                                                             <span
                                                                 class="badge bg-warning bg-opacity-10 text-warning px-2.5 py-1 rounded-pill"><i
-                                                                    class="fas fa-clock me-1"></i>Pending</span>
+                                                                    class="fas fa-hand-paper me-1 text-danger"></i>Pending (Stop
+                                                                Collecting)</span>
                                                         @endif
                                                     </td>
                                                     <td class="px-4 py-3 text-end">
@@ -1909,10 +1910,10 @@
                         const tbody = document.getElementById('budget_table_body');
                         const row = document.createElement('tr');
                         row.innerHTML = `
-                                                                                    <td><input type="text" class="form-control form-control-sm b-purpose" value="${purpose}"></td>
-                                                                                    <td><input type="number" class="form-control form-control-sm b-amount" value="${amount}" oninput="calculateBudgetTotal()"></td>
-                                                                                    <td><button type="button" class="btn btn-sm text-danger" onclick="removeBudgetRow(this)"><i class="fas fa-trash"></i></button></td>
-                                                                                `;
+                                                                                                                    <td><input type="text" class="form-control form-control-sm b-purpose" value="${purpose}"></td>
+                                                                                                                    <td><input type="number" class="form-control form-control-sm b-amount" value="${amount}" oninput="calculateBudgetTotal()"></td>
+                                                                                                                    <td><button type="button" class="btn btn-sm text-danger" onclick="removeBudgetRow(this)"><i class="fas fa-trash"></i></button></td>
+                                                                                                                `;
                         tbody.appendChild(row);
                         calculateBudgetTotal();
                     }
@@ -1946,12 +1947,12 @@
                         const div = document.createElement('div');
                         div.className = 'row g-2 mb-2 align-items-center stage-row';
                         div.innerHTML = `
-                                                                                    <div class="col-md-4"><input type="text" class="form-control form-control-sm stage-name" value="${name}"></div>
-                                                                                    <div class="col-md-2"><input type="number" class="form-control form-control-sm stage-start" value="${start}"></div>
-                                                                                    <div class="col-md-2"><input type="number" class="form-control form-control-sm stage-end" value="${end}"></div>
-                                                                                    <div class="col-md-3"><input type="text" class="form-control form-control-sm stage-dur" value="${end - start} Month(s)" readonly></div>
-                                                                                    <div class="col-md-1"><button type="button" class="btn btn-sm text-danger" onclick="removeStageRow(this)"><i class="fas fa-times"></i></button></div>
-                                                                                `;
+                                                                                                                    <div class="col-md-4"><input type="text" class="form-control form-control-sm stage-name" value="${name}"></div>
+                                                                                                                    <div class="col-md-2"><input type="number" class="form-control form-control-sm stage-start" value="${start}"></div>
+                                                                                                                    <div class="col-md-2"><input type="number" class="form-control form-control-sm stage-end" value="${end}"></div>
+                                                                                                                    <div class="col-md-3"><input type="text" class="form-control form-control-sm stage-dur" value="${end - start} Month(s)" readonly></div>
+                                                                                                                    <div class="col-md-1"><button type="button" class="btn btn-sm text-danger" onclick="removeStageRow(this)"><i class="fas fa-times"></i></button></div>
+                                                                                                                `;
                         container.appendChild(div);
                         syncTimelineJson();
                     }
@@ -2016,6 +2017,62 @@
                                     input?.classList.remove('is-invalid');
                                 }
                             });
+                        }
+
+                        // Validate Step 5: Investment Limits
+                        if (stepNum === 5) {
+                            const minInvInput = document.getElementById('wiz_min_inv');
+                            const maxInvInput = document.getElementById('wiz_max_inv');
+                            const targetInput = document.getElementById('wiz_funding_target');
+                            const termsCheck = document.getElementById('wiz_terms');
+
+                            // Reset error highlights before checking
+                            minInvInput?.classList.remove('is-invalid');
+                            maxInvInput?.classList.remove('is-invalid');
+
+                            const minInv = parseFloat(minInvInput?.value) || 0;
+                            const maxInv = parseFloat(maxInvInput?.value) || 0;
+                            const askAmt = parseFloat(targetInput?.value) || 0;
+
+                            if (minInv <= 0 || minInvInput?.value === '') {
+                                isValid = false;
+                                minInvInput?.classList.add('is-invalid');
+                                if (!firstInvalid) firstInvalid = minInvInput;
+                            }
+
+                            if (maxInv <= 0 || maxInvInput?.value === '') {
+                                isValid = false;
+                                maxInvInput?.classList.add('is-invalid');
+                                if (!firstInvalid) firstInvalid = maxInvInput;
+                            }
+
+                            if (minInv > maxInv) {
+                                isValid = false;
+                                minInvInput?.classList.add('is-invalid');
+                                maxInvInput?.classList.add('is-invalid');
+                                alert(`Invalid Limits: Minimum investment (₹${minInv.toLocaleString('en-IN')}) cannot be greater than Maximum investment (₹${maxInv.toLocaleString('en-IN')}).`);
+                                return false;
+                            }
+
+                            if (askAmt > 0 && minInv > askAmt) {
+                                isValid = false;
+                                minInvInput?.classList.add('is-invalid');
+                                alert(`Invalid Limits: Minimum investment (₹${minInv.toLocaleString('en-IN')}) cannot be greater than total Ask Amount (₹${askAmt.toLocaleString('en-IN')}).`);
+                                return false;
+                            }
+
+                            if (askAmt > 0 && maxInv > askAmt) {
+                                isValid = false;
+                                maxInvInput?.classList.add('is-invalid');
+                                alert(`Invalid Limits: Maximum investment (₹${maxInv.toLocaleString('en-IN')}) cannot be greater than total Ask Amount (₹${askAmt.toLocaleString('en-IN')}).`);
+                                return false;
+                            }
+
+                            if (termsCheck && !termsCheck.checked) {
+                                isValid = false;
+                                alert("You must agree to the terms before proceeding.");
+                                return false;
+                            }
                         }
 
                         if (!isValid) {
@@ -2203,7 +2260,7 @@
                     <!-- Dynamic Farm Feed Cards (100% Dynamic) -->
                     <?php
             $displayFarms = $myFarms->count() > 0 ? $myFarms : $availableFarms;
-                                                                            ?>
+                                                                                                            ?>
 
                     @forelse($displayFarms as $farmItem)
                         <div class="mb-4">
@@ -2296,8 +2353,8 @@
 
                     <!-- Harvest Cards Grid (Direct DB Fetch) -->
                     <?php 
-                                                                                $allFarmsList = \App\Models\Farm::with(['farmer.user', 'updates', 'harvests'])->latest()->get();
-                                                                            ?>
+                                                                                                                $allFarmsList = \App\Models\Farm::with(['farmer.user', 'updates', 'harvests'])->latest()->get();
+                                                                                                            ?>
 
                     <div class="row g-4 mb-4">
                         @forelse($allFarmsList as $farmItem)
@@ -2801,7 +2858,7 @@
                     $estYield += $farm->harvests->sum('estimated_yield');
                 }
             }
-                                                        ?>
+                                                                                        ?>
                                 <h3 class="fw-bold text-dark mb-2">
                                     {{ $estYield > 0 ? number_format($estYield) . ' Tons' : 'Pending' }}
                                 </h3>
@@ -3266,7 +3323,7 @@
                     <div class="row g-4" id="myFarmsGridContainer">
                         @forelse($myInvestments ?? [] as $inv)
                                     <?php 
-                                                                                                    $totalFarmInvested = \App\Models\Investment::where('user_id', auth()->id())
+                                                                                                                                                                                    $totalFarmInvested = \App\Models\Investment::where('user_id', auth()->id())
                                 ->where('farm_id', $inv->farm_id)
                                 ->sum('amount');
                             $invAmount = $totalFarmInvested > 0 ? $totalFarmInvested : $inv->amount;
@@ -3276,7 +3333,7 @@
                             if ($statusKey === 'approved' || $statusKey === 'active') {
                                 $statusKey = 'growing';
                             }
-                                                                                                ?>
+                                                                                                                                                                                ?>
                                     <div class="col-md-6 col-lg-4 my-farm-card-item" data-farm-status="{{ $statusKey }}">
                                         <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden"
                                             style="border: 1px solid #e5e7eb !important;">
@@ -3706,7 +3763,7 @@
                     <div class="modal-header bg-success bg-opacity-10 border-0 p-4">
                         <h5 class="modal-title fw-bold text-success" id="uploadMissingModalLabel"><i
                                 class="fas fa-file-upload me-2"></i>Upload Sales & Proof Document</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" ari a-label="Close"></button>
                     </div>
                     <form action="{{ route('admin.sales.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
@@ -3782,19 +3839,25 @@
                         <div class="modal-header border-0 text-white p-4" style="background: #064e3b;">
                             <div>
                                 <h5 class="modal-title fw-bold mb-1" id="makeInvestmentModalLabel"><i
-                                        class="fas fa-hand-holding-usd text-success me-2"></i>1. Select Investment Capital</h5>
-                                <p class="text-white-50 mb-0" style="font-size: 11px;">Select plot & amount to earn projected yield returns</p>
+                                        class="fas fa-hand-holding-usd text-success me-2"></i>1. Select Investment Capital
+                                </h5>
+                                <p class="text-white-50 mb-0" style="font-size: 11px;">Select plot & amount to earn
+                                    projected yield returns</p>
                             </div>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
                         </div>
 
                         <div class="modal-body p-4 bg-white">
                             <div class="mb-3">
-                                <label class="form-label text-dark small fw-bold">Selected Farm Plot <span class="text-danger">*</span></label>
-                                <select id="dash_modal_farm_id" class="form-select form-select-lg rounded-3" style="font-size: 13px;" onchange="updateDashInvestCalc()">
+                                <label class="form-label text-dark small fw-bold">Selected Farm Plot <span
+                                        class="text-danger">*</span></label>
+                                <select id="dash_modal_farm_id" class="form-select form-select-lg rounded-3"
+                                    style="font-size: 13px;" onchange="updateDashInvestCalc()">
                                     @foreach(($availableFarms ?? \App\Models\Farm::where('status', 'approved')->get()) as $f)
                                         <option value="{{ $f->id }}" data-target="{{ $f->funding_target ?? 800000 }}"
-                                            data-roi="{{ $f->expected_roi ?? 18.5 }}" data-min="{{ $f->min_investment ?? 10000 }}"
+                                            data-roi="{{ $f->expected_roi ?? 18.5 }}"
+                                            data-min="{{ $f->min_investment ?? 10000 }}"
                                             data-max="{{ $f->max_investment ?? $f->funding_target ?? 300000 }}"
                                             data-name="{{ $f->name }}">
                                             {{ $f->name }} ({{ $f->primary_crop }} - {{ $f->location ?? 'Kerala' }})
@@ -3804,31 +3867,37 @@
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label text-dark small fw-bold">Investment Amount (₹) <span class="text-danger">*</span></label>
+                                <label class="form-label text-dark small fw-bold">Investment Amount (₹) <span
+                                        class="text-danger">*</span></label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light fw-bold">₹</span>
                                     <input type="number" step="1000" min="10000"
                                         class="form-control form-control-lg rounded-end fw-bold" id="dash_step1AmountInput"
                                         value="20000" required oninput="updateDashInvestCalc()">
                                 </div>
-                                <small class="text-muted d-block mt-1" id="dash_investmentLimitsHelp" style="font-size: 10px;">Min: ₹10,000 | Max Limit: ₹3,00,000</small>
+                                <small class="text-muted d-block mt-1" id="dash_investmentLimitsHelp"
+                                    style="font-size: 10px;">Min: ₹10,000 | Max Limit: ₹3,00,000</small>
                             </div>
 
                             <!-- Dynamic Calculation Card -->
-                            <div class="p-3 rounded-3 mb-4 text-white" style="background: linear-gradient(135deg, #064e3b 0%, #047857 100%);">
-                                <div class="d-flex justify-content-between align-items-center mb-2" style="font-size: 11px;">
+                            <div class="p-3 rounded-3 mb-4 text-white"
+                                style="background: linear-gradient(135deg, #064e3b 0%, #047857 100%);">
+                                <div class="d-flex justify-content-between align-items-center mb-2"
+                                    style="font-size: 11px;">
                                     <span class="text-white-50">Estimated Equity Ownership:</span>
                                     <strong class="text-white" id="dash_calcEquityShare">1.25%</strong>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center" style="font-size: 13px;">
                                     <span class="text-white-50">Projected Total Return:</span>
-                                    <strong class="text-white fs-5 fw-bold" id="dash_calcProjectedReturn" style="color: #34d399 !important;">₹11,850</strong>
+                                    <strong class="text-white fs-5 fw-bold" id="dash_calcProjectedReturn"
+                                        style="color: #34d399 !important;">₹11,850</strong>
                                 </div>
                             </div>
 
                             <div class="mb-3">
                                 <label class="form-label text-dark small fw-bold">Select Payment Method</label>
-                                <select id="dash_step1PaymentMethod" class="form-select form-select-lg rounded-3" style="font-size: 13px;">
+                                <select id="dash_step1PaymentMethod" class="form-select form-select-lg rounded-3"
+                                    style="font-size: 13px;">
                                     <option value="UPI" selected>Instant UPI (GooglePay / PhonePe / Paytm)</option>
                                     <option value="net_banking">Net Banking (HDFC, ICICI, SBI, Axis)</option>
                                     <option value="bank_transfer">Bank Transfer (NEFT / RTGS / IMPS)</option>
@@ -3838,8 +3907,11 @@
                         </div>
 
                         <div class="modal-footer bg-light border-0 p-4 pt-0">
-                            <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
-                            <button type="button" onclick="goToDashboardStep2Payment()" class="btn btn-success rounded-pill px-4 py-2.5 fw-bold shadow-sm" style="background-color: #064e3b; border-color: #064e3b;">
+                            <button type="button" class="btn btn-light rounded-pill px-4"
+                                data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" onclick="goToDashboardStep2Payment()"
+                                class="btn btn-success rounded-pill px-4 py-2.5 fw-bold shadow-sm"
+                                style="background-color: #064e3b; border-color: #064e3b;">
                                 Proceed to Payment <i class="fas fa-arrow-right ms-1.5"></i>
                             </button>
                         </div>
@@ -3854,47 +3926,60 @@
 
                             <div class="modal-header border-0 text-white p-4" style="background: #064e3b;">
                                 <div>
-                                    <h5 class="modal-title fw-bold mb-1"><i class="fas fa-shield-alt text-success me-2"></i>2. Secure Payment Gateway</h5>
-                                    <p class="text-white-50 mb-0" style="font-size: 11px;">Complete your transfer to seal your equity share</p>
+                                    <h5 class="modal-title fw-bold mb-1"><i
+                                            class="fas fa-shield-alt text-success me-2"></i>2. Secure Payment Gateway</h5>
+                                    <p class="text-white-50 mb-0" style="font-size: 11px;">Complete your transfer to seal
+                                        your equity share</p>
                                 </div>
-                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
                             </div>
 
                             <div class="modal-body p-4 bg-white">
-                                <div class="p-3.5 bg-light rounded-4 mb-4 border d-flex justify-content-between align-items-center">
+                                <div
+                                    class="p-3.5 bg-light rounded-4 mb-4 border d-flex justify-content-between align-items-center">
                                     <div>
-                                        <small class="text-muted fw-bold text-uppercase d-block" style="font-size: 9px; letter-spacing: 0.5px;">TOTAL PAYABLE AMOUNT</small>
+                                        <small class="text-muted fw-bold text-uppercase d-block"
+                                            style="font-size: 9px; letter-spacing: 0.5px;">TOTAL PAYABLE AMOUNT</small>
                                         <h3 class="fw-bold text-dark mb-0 fs-2" id="dash_paymentSummaryAmount">₹20,000</h3>
                                     </div>
-                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-1.5 fw-bold" style="font-size: 11px;" id="dash_paymentSummaryGateway">
+                                    <span
+                                        class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-1.5 fw-bold"
+                                        style="font-size: 11px;" id="dash_paymentSummaryGateway">
                                         Instant UPI
                                     </span>
                                 </div>
 
                                 <!-- Payment Gateway Visual -->
-                                <div class="border rounded-4 p-4 text-center mb-4 bg-white shadow-sm" style="border-color: #e5e7eb !important;">
+                                <div class="border rounded-4 p-4 text-center mb-4 bg-white shadow-sm"
+                                    style="border-color: #e5e7eb !important;">
                                     <div class="mb-3">
-                                        <span class="badge bg-light text-dark border px-3 py-1 rounded-pill fw-bold" style="font-size: 10px;">
+                                        <span class="badge bg-light text-dark border px-3 py-1 rounded-pill fw-bold"
+                                            style="font-size: 10px;">
                                             <i class="fas fa-lock text-success me-1"></i> 256-BIT ESCROW ENCRYPTED
                                         </span>
                                     </div>
 
                                     <div class="p-3 bg-light rounded-3 d-inline-block mb-3 border">
                                         <i class="fas fa-qrcode text-dark fa-4x mb-2 d-block"></i>
-                                        <span class="text-muted fw-bold" style="font-size: 10px;">Scan with GPay / PhonePe / Paytm</span>
+                                        <span class="text-muted fw-bold" style="font-size: 10px;">Scan with GPay / PhonePe /
+                                            Paytm</span>
                                     </div>
 
                                     <p class="text-muted mb-0" style="font-size: 11px;">
-                                        Click below to complete transaction and redirect to <strong>Live Investment Tracker</strong>.
+                                        Click below to complete transaction and redirect to <strong>Live Investment
+                                            Tracker</strong>.
                                     </p>
                                 </div>
                             </div>
 
                             <div class="modal-footer bg-light border-0 p-4 pt-0 justify-content-between">
-                                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 fw-bold" onclick="backToDashboardStep1()" style="font-size: 12px;">
+                                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 fw-bold"
+                                    onclick="backToDashboardStep1()" style="font-size: 12px;">
                                     <i class="fas fa-arrow-left me-1"></i> Back
                                 </button>
-                                <button type="submit" class="btn btn-success rounded-pill px-4 py-2.5 fw-bold shadow-sm" style="background-color: #064e3b; border-color: #064e3b; font-size: 13px;">
+                                <button type="submit" class="btn btn-success rounded-pill px-4 py-2.5 fw-bold shadow-sm"
+                                    style="background-color: #064e3b; border-color: #064e3b; font-size: 13px;">
                                     <i class="fas fa-check-circle me-1.5"></i> Pay & Complete Investment
                                 </button>
                             </div>
@@ -4061,9 +4146,17 @@
                     syncFundingTargetToMaxInv();
                 }
 
+                const minInvInput = document.getElementById('wiz_min_inv');
+                if (minInvInput) {
+                    minInvInput.addEventListener('input', function () {
+                        this.classList.remove('is-invalid');
+                    });
+                }
+
                 if (maxInvInput) {
                     maxInvInput.addEventListener('input', function () {
                         this.dataset.userEdited = "true";
+                        this.classList.remove('is-invalid');
                     });
                 }
             });

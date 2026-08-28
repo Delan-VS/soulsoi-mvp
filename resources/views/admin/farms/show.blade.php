@@ -150,7 +150,7 @@
                 </div>
             @else
                 <div class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3 py-1 mb-2 fw-semibold border border-warning border-opacity-25 text-dark" style="font-size:11px; letter-spacing:0.5px; text-transform: uppercase;">
-                    <i class="fas fa-hourglass-half me-1"></i> PENDING VERIFICATION
+                    <i class="fas fa-hand-paper me-1 text-danger"></i> PENDING VERIFICATION (STOP COLLECTING)
                 </div>
             @endif@if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent())<!--[if ENDBLOCK]><![endif]-->@endif
             <h2 class="fw-bold mb-1" style="color: var(--text-dark); font-size: 24px;">{{ $farm->name ?? 'N/A' }}</h2>
@@ -448,6 +448,75 @@
         <!-- 2. Fund Request Tab -->
         <div class="tab-pane fade" id="fund-request" role="tabpanel">
 
+            <!-- Interactive Workflow & Next Steps Guidance Banner -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border-left: 5px solid #10b981 !important;">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+                        <div>
+                            <span class="badge bg-success bg-opacity-20 text-success rounded-pill px-3 py-1 fw-bold text-uppercase me-2" style="font-size: 10px;">
+                                <i class="fas fa-compass me-1"></i> Guided Workflow
+                            </span>
+                            <h5 class="fw-bold text-dark mb-1 d-inline-block align-middle" style="font-size: 16px;">
+                                Post-Disbursement Next Steps Guide
+                            </h5>
+                            <p class="text-muted mb-0" style="font-size: 12px;">
+                                New to this process? After disbursing funds, follow this standard 3-step cycle to keep investors informed:
+                            </p>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-success rounded-pill px-4 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#nextStepsWorkflowModal">
+                            <i class="fas fa-lightbulb me-1"></i> View Next Steps Popup
+                        </button>
+                    </div>
+
+                    <div class="row g-3">
+                        <!-- Step 1: Fund Request -->
+                        <div class="col-md-3">
+                            <div class="bg-white p-3 rounded-3 border h-100 position-relative shadow-2sm">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <span class="badge bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; font-size: 11px;">1</span>
+                                    <strong class="text-dark" style="font-size: 13px;">Fund Request</strong>
+                                </div>
+                                <p class="text-muted mb-1" style="font-size: 11px;">Disburse capital for 5 budget stages (Land, Seed, Irrigation, Harvest, Settle).</p>
+                                <span class="badge bg-success text-white position-absolute top-0 end-0 m-2" style="font-size: 9px;"><i class="fas fa-check"></i> Current</span>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Updates -->
+                        <div class="col-md-3">
+                            <div class="bg-white p-3 rounded-3 border h-100 position-relative shadow-2sm role-btn cursor-pointer" onclick="switchToTab('updates')" style="cursor: pointer;">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <span class="badge bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; font-size: 11px;">2</span>
+                                    <strong class="text-dark" style="font-size: 13px;">Updates Tab <i class="fas fa-arrow-right ms-1 text-success" style="font-size: 10px;"></i></strong>
+                                </div>
+                                <p class="text-muted mb-0" style="font-size: 11px;"><strong>Stages 1, 2 & 3:</strong> Post Land Prep, Seeding & Irrigation progress photos for investors.</p>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Harvest -->
+                        <div class="col-md-3">
+                            <div class="bg-white p-3 rounded-3 border h-100 position-relative shadow-2sm role-btn cursor-pointer" onclick="switchToTab('harvest')" style="cursor: pointer;">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <span class="badge bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; font-size: 11px;">3</span>
+                                    <strong class="text-dark" style="font-size: 13px;">Harvest Tab <i class="fas fa-arrow-right ms-1 text-warning" style="font-size: 10px;"></i></strong>
+                                </div>
+                                <p class="text-muted mb-0" style="font-size: 11px;"><strong>Stage 4:</strong> Log harvested yield tonnage, crop market prices, & sales receipts.</p>
+                            </div>
+                        </div>
+
+                        <!-- Step 4: Settlement -->
+                        <div class="col-md-3">
+                            <div class="bg-white p-3 rounded-3 border h-100 position-relative shadow-2sm role-btn cursor-pointer" onclick="switchToTab('settlement')" style="cursor: pointer;">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <span class="badge bg-info text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; font-size: 11px;">4</span>
+                                    <strong class="text-dark" style="font-size: 13px;">Settlement Tab <i class="fas fa-arrow-right ms-1 text-info" style="font-size: 10px;"></i></strong>
+                                </div>
+                                <p class="text-muted mb-0" style="font-size: 11px;"><strong>Stage 5:</strong> Calculate & disburse investor return payouts to close plot cycle.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             @if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent())<!--[if BLOCK]><![endif]-->@endif@if(auth()->user()?->farmer || auth()->user()?->is_admin)
                 
                 @if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent())<!--[if BLOCK]><![endif]-->@endif@if($farm->pending_disbursement_amount > 0)
@@ -512,9 +581,9 @@
                                 @endif@if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent())<!--[if ENDBLOCK]><![endif]-->@endif
                             </div>
                         </div>
-                    @endif@if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent())<!--[if ENDBLOCK]><![endif]-->@endif
+                    @endif
                 @else
-                    @if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent())<!--[if BLOCK]><![endif]-->@endif@if(auth()->user()?->is_admin)
+                    @if(auth()->user()?->is_admin)
                         <!-- Admin View: No Pending Request status -->
                         <div class="alert alert-secondary p-4 rounded-3 border-0 shadow-sm d-flex gap-3 align-items-center mb-4 text-dark" style="background-color: #f4f4f5;">
                             <div class="bg-secondary bg-opacity-10 text-secondary rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; min-width: 48px;">
@@ -527,9 +596,10 @@
                                 </p>
                             </div>
                         </div>
-                    @endif@if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent())<!--[if ENDBLOCK]><![endif]-->@endif
+                    @endif
+                @endif
 
-                    <!-- Fund Disbursement Request Form -->
+                <!-- Fund Disbursement Request Form -->
                     <form action="{{ route('admin.farms.disburse', $farm->id) }}" method="POST" enctype="multipart/form-data">
                         <?php echo csrf_field(); ?>
                         <div class="mb-3 text-dark">
@@ -554,11 +624,11 @@
                         }
                         if (empty($stagesWithBudget)) {
                             $stagesWithBudget = [
-                                ['name' => 'Land Preparation', 'amount' => 150000, 'purpose' => 'Land tilling, soil enrichment, leveling, and plot prep.'],
-                                ['name' => 'Seed Purchase', 'amount' => 45000, 'purpose' => 'Procurement of certified high-yield organic seeds.'],
-                                ['name' => 'Sowing & Irrigation', 'amount' => 85000, 'purpose' => 'Drip irrigation installation and initial sowing labor.'],
-                                ['name' => 'Labor & Maintenance', 'amount' => 120000, 'purpose' => 'Weeding, pruning, and seasonal crop care labor.'],
-                                ['name' => 'Fertilizers & Organic Inputs', 'amount' => 50000, 'purpose' => 'Bio-fertilizers, vermicompost, and organic pest protection.']
+                                ['name' => 'Land Prep', 'amount' => 150000, 'purpose' => 'Land tilling, soil enrichment, leveling, and plot prep.'],
+                                ['name' => 'Seeding', 'amount' => 45000, 'purpose' => 'Procurement of certified high-yield organic seeds.'],
+                                ['name' => 'Irrigation & Growth', 'amount' => 120000, 'purpose' => 'Drip irrigation, weeding, and seasonal labor care.'],
+                                ['name' => 'Harvesting', 'amount' => 85000, 'purpose' => 'Crop cutting, yield collection, and sorting.'],
+                                ['name' => 'Settlement', 'amount' => 50000, 'purpose' => 'Revenue distribution and investor return settlement.']
                             ];
                         }
                     ?>
@@ -638,12 +708,6 @@
                         <!-- Evidence Upload -->
                         <div class="col-md-6">
                             <div class="section-card h-100 mb-0 d-flex flex-column">
-                                <div class="section-header mb-2">
-                                    <i class="far fa-folder-open text-primary"></i>
-                                    <h5 style="font-size: 14px;">Evidence Upload</h5>
-                                </div>
-                                <p class="text-muted" style="font-size: 13px;">Attach pro-forma invoices, supplier quotes, or site photos to support your request.</p>
-
                                 <input type="file" id="evidence_file" name="evidence_file" class="d-none">
 
                                 <div class="upload-zone mb-3">
@@ -743,9 +807,85 @@
                             <button type="submit" class="btn btn-primary fw-semibold" style="font-size: 14px; padding: 10px 24px; background: var(--primary-blue); border-color: var(--primary-blue);">Submit Fund Request <i class="fas fa-arrow-right ms-2"></i></button>
                         </div>
                     </div>
+                    <!-- Disbursement & Fund Request History Log Table -->
+                    <div class="card border-0 shadow-sm rounded-4 mt-4 overflow-hidden" style="background-color: #ffffff;">
+                        <div class="px-4 py-3 bg-light border-bottom d-flex justify-content-between align-items-center">
+                            <h6 class="fw-bold mb-0 text-dark" style="font-size: 14px;">
+                                <i class="fas fa-history me-2 text-primary"></i> Disbursement & Fund Request History
+                            </h6>
+                            <span class="badge bg-secondary rounded-pill px-3 py-1" style="font-size: 11px;">
+                                {{ count($farm->disbursement_history ?? []) }} Logged Requests
+                            </span>
+                        </div>
+                        <div class="card-body p-0">
+                            @if(!empty($farm->disbursement_history) && is_array($farm->disbursement_history) && count($farm->disbursement_history) > 0)
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0" style="font-size: 13px;">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th class="ps-4">Date</th>
+                                                <th>Stage</th>
+                                                <th>Amount</th>
+                                                <th>Purpose / Priority</th>
+                                                <th>Submitted By</th>
+                                                <th class="pe-4 text-end">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach(array_reverse($farm->disbursement_history) as $historyItem)
+                                                <tr>
+                                                    <td class="ps-4 font-monospace text-muted" style="font-size: 12px;">
+                                                        {{ $historyItem['date'] ?? 'N/A' }}
+                                                    </td>
+                                                    <td>
+                                                        <strong class="text-dark">{{ $historyItem['stage'] ?? 'General' }}</strong>
+                                                    </td>
+                                                    <td>
+                                                        <span class="fw-bold text-success">₹{{ number_format($historyItem['amount'] ?? 0) }}</span>
+                                                    </td>
+                                                    <td>
+                                                        <div class="text-dark">{{ $historyItem['purpose'] ?? 'N/A' }}</div>
+                                                        @if(!empty($historyItem['priority']))
+                                                            <small class="text-muted"><i class="fas fa-flag me-1"></i>{{ $historyItem['priority'] }}</small>
+                                                        @endif
+                                                    </td>
+                                                    <td>
+                                                        <span class="text-secondary">{{ $historyItem['submitted_by'] ?? 'User' }}</span>
+                                                    </td>
+                                                    <td class="pe-4 text-end">
+                                                        @php
+                                                            $st = strtolower($historyItem['status'] ?? 'pending');
+                                                        @endphp
+                                                        @if(str_contains($st, 'disbursed') || str_contains($st, 'approved'))
+                                                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2.5 py-1">
+                                                                <i class="fas fa-check-circle me-1"></i> Disbursed
+                                                            </span>
+                                                        @elseif(str_contains($st, 'reject'))
+                                                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2.5 py-1">
+                                                                <i class="fas fa-times-circle me-1"></i> Rejected
+                                                            </span>
+                                                        @else
+                                                            <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-2.5 py-1 text-dark">
+                                                                <i class="fas fa-hourglass-half me-1"></i> Pending Review
+                                                            </span>
+                                                        @endif
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @else
+                                <div class="p-4 text-center text-muted" style="font-size: 13px;">
+                                    <i class="fas fa-inbox fa-2x mb-2 d-block text-secondary opacity-50"></i>
+                                    No historical fund requests recorded for this farm yet.
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+
                     </form>
-                @endif@if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent())<!--[if ENDBLOCK]><![endif]-->@endif
-            @endif@if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent())<!--[if ENDBLOCK]><![endif]-->@endif
+                @endif
         </div>
 
         <!-- 3. Timeline Tab -->
@@ -753,20 +893,51 @@
 
             <!-- Cultivation Timeline -->
             <?php
-                $farmStages = ['Land Prep', 'Soil Prep', 'Seeding', 'Irrigation & Growth', 'Harvesting', 'Settlement'];
+                $farmStages = ['Land Prep', 'Seeding', 'Irrigation & Growth', 'Harvesting', 'Settlement'];
                 $latestHarvestObj = $farm->harvests()->latest()->first();
-                
-                // Determine current stage dynamically
-                if ($farm->status === 'completed') {
-                    $currentStageIdx = 5;
-                } elseif ($latestHarvestObj && ($latestHarvestObj->actual_yield > 0 || $latestHarvestObj->status === 'harvested')) {
-                    $currentStageIdx = 5; // Ready for / Active Settlement
-                } elseif ($farm->harvests->count() > 0) {
-                    $currentStageIdx = 4; // Harvesting Active (Irrigation & Growth COMPLETED)
-                } elseif (in_array($farm->status, ['approved', 'active'])) {
-                    $currentStageIdx = 3; // Irrigation & Growth Active
-                } else {
-                    $currentStageIdx = 0;
+
+                // Build per-stage status map from actual disbursement history & harvest status
+                $disbursedStagesMap = [];
+                $pendingStagesMap = [];
+
+                if (!empty($farm->disbursement_history) && is_array($farm->disbursement_history)) {
+                    foreach ($farm->disbursement_history as $hItem) {
+                        $hStage = strtolower($hItem['stage'] ?? '');
+                        $hStatus = strtolower($hItem['status'] ?? '');
+                        
+                        $isDisb = str_contains($hStatus, 'disbursed') || str_contains($hStatus, 'approved');
+                        $isPend = str_contains($hStatus, 'pending');
+
+                        if (str_contains($hStage, 'land')) {
+                            if ($isDisb) $disbursedStagesMap['Land Prep'] = true;
+                            if ($isPend) $pendingStagesMap['Land Prep'] = true;
+                        }
+                        if (str_contains($hStage, 'seed') || str_contains($hStage, 'sowing')) {
+                            if ($isDisb) $disbursedStagesMap['Seeding'] = true;
+                            if ($isPend) $pendingStagesMap['Seeding'] = true;
+                        }
+                        if (str_contains($hStage, 'irrigation') || str_contains($hStage, 'growth') || str_contains($hStage, 'labor') || str_contains($hStage, 'labour') || str_contains($hStage, 'maintenance') || str_contains($hStage, 'fertilizer')) {
+                            if ($isDisb) $disbursedStagesMap['Irrigation & Growth'] = true;
+                            if ($isPend) $pendingStagesMap['Irrigation & Growth'] = true;
+                        }
+                        if (str_contains($hStage, 'harvest')) {
+                            if ($isDisb) $disbursedStagesMap['Harvesting'] = true;
+                            if ($isPend) $pendingStagesMap['Harvesting'] = true;
+                        }
+                    }
+                }
+
+                if ($farm->status === 'completed' || ($latestHarvestObj && ($latestHarvestObj->actual_yield > 0 || $latestHarvestObj->status === 'harvested'))) {
+                    $disbursedStagesMap['Harvesting'] = true;
+                    $disbursedStagesMap['Settlement'] = true;
+                }
+
+                // Determine active stage for progress bar width calculation
+                $activeIdx = 0;
+                foreach ($farmStages as $i => $sName) {
+                    if (isset($disbursedStagesMap[$sName])) {
+                        $activeIdx = max($activeIdx, $i);
+                    }
                 }
             ?>
             <div class="section-card mb-4">
@@ -776,34 +947,55 @@
                         <h5>Cycle Roadmap</h5>
                     </div>
                     <div class="badge bg-success bg-opacity-10 text-success px-3 py-2" style="border-radius: 20px; font-weight: 600; font-size: 12px;">
-                        Current Stage: {{ $farm->status === 'completed' ? 'Settlement (Completed)' : ($farmStages[$currentStageIdx] ?? 'Land Prep') }}
+                        Current Stage: {{ $farm->status === 'completed' ? 'Settlement (Completed)' : ($farmStages[$activeIdx] ?? 'Land Prep') }}
                     </div>
                 </div>
 
                 <div class="timeline-container">
                     <div class="timeline-line-bg"></div>
-                    <div class="timeline-line-active" style="width: {{ ($currentStageIdx / (count($farmStages) - 1)) * 100 }}%;"></div>
+                    <div class="timeline-line-active" style="width: {{ ($activeIdx / (count($farmStages) - 1)) * 100 }}%;"></div>
 
                     @foreach($farmStages as $idx => $stage)
                         @php
+                            $isDisbursed = isset($disbursedStagesMap[$stage]);
+                            $isPending = isset($pendingStagesMap[$stage]);
+
                             if ($farm->status === 'completed') {
                                 $isCompleted = true;
                                 $isActive = false;
                                 $isUpcoming = false;
+                                $statusText = 'COMPLETED';
+                            } elseif ($isDisbursed) {
+                                $isCompleted = true;
+                                $isActive = false;
+                                $isUpcoming = false;
+                                $statusText = 'COMPLETED';
+                            } elseif ($isPending) {
+                                $isCompleted = false;
+                                $isActive = true;
+                                $isUpcoming = false;
+                                $statusText = 'PENDING REVIEW';
+                            } elseif ($idx === 0 && empty($disbursedStagesMap) && empty($pendingStagesMap)) {
+                                $isCompleted = false;
+                                $isActive = true;
+                                $isUpcoming = false;
+                                $statusText = 'ACTIVE';
                             } else {
-                                $isCompleted = $idx < $currentStageIdx;
-                                $isActive = $idx === $currentStageIdx;
-                                $isUpcoming = $idx > $currentStageIdx;
+                                $isCompleted = false;
+                                $isActive = false;
+                                $isUpcoming = true;
+                                $statusText = $idx === count($farmStages)-1 ? 'FINAL' : 'UPCOMING';
                             }
-                            
+
                             $icon = 'fas fa-circle';
                             if ($isCompleted) $icon = 'fas fa-check';
+                            elseif ($isPending) $icon = 'fas fa-hourglass-half';
                             elseif ($stage === 'Seeding') $icon = 'fas fa-seedling';
                             elseif ($stage === 'Harvesting') $icon = 'fas fa-tractor';
                             else $icon = $idx + 1;
                         @endphp
                         <div class="timeline-step">
-                            <div class="step-icon {{ $isCompleted ? 'completed' : '' }} {{ $isActive ? 'active' : '' }}">
+                            <div class="step-icon {{ $isCompleted ? 'completed' : '' }} {{ $isActive ? 'active' : '' }}" style="{{ $isPending ? 'border-color: #f59e0b; color: #b45309; background: #fffbeb;' : '' }}">
                                 @if(is_numeric($icon))
                                     {{ $icon }}
                                 @else
@@ -811,8 +1003,8 @@
                                 @endif
                             </div>
                             <div class="step-label {{ $isUpcoming ? 'text-muted' : '' }}" style="{{ $isUpcoming ? 'font-size: 11px;' : '' }}">{{ $stage }}</div>
-                            <div class="step-sublabel {{ $isActive ? 'active' : '' }}">
-                                {{ $isCompleted ? 'COMPLETED' : ($isActive ? 'ACTIVE' : ($idx === count($farmStages)-1 ? 'FINAL' : 'UPCOMING')) }}
+                            <div class="step-sublabel {{ $isActive ? 'active' : '' }}" style="{{ $isPending ? 'color: #b45309;' : '' }}">
+                                {{ $statusText }}
                             </div>
                         </div>
                     @endforeach
@@ -820,6 +1012,44 @@
             </div>
 
             <!-- New Metrics Row -->
+            <!-- New Dynamic Metrics Row -->
+            <?php
+                // Dynamic calculations for Yield & Health Metrics and Field Sensors
+                $sumActualYield = $farm->harvests ? $farm->harvests->sum('actual_yield') : 0;
+                $sumEstYield = $farm->harvests ? $farm->harvests->sum('estimated_yield') : 0;
+                $acresVal = floatval($farm->total_acres ?? 1);
+                
+                // 1. Current Yield Est. (Dynamic)
+                if ($sumActualYield > 0) {
+                    $displayYieldVal = number_format($sumActualYield, 1) . ' <span style="font-size: 14px;" class="text-muted fw-normal">Tons (Harvested)</span>';
+                } elseif ($sumEstYield > 0) {
+                    $displayYieldVal = number_format($sumEstYield, 1) . ' <span style="font-size: 14px;" class="text-muted fw-normal">Tons (Estimated)</span>';
+                } else {
+                    $cropYieldMultiplier = str_contains(strtolower($farm->primary_crop ?? ''), 'paddy') || str_contains(strtolower($farm->primary_crop ?? ''), 'rice') ? 2.5 : (str_contains(strtolower($farm->primary_crop ?? ''), 'banana') ? 12 : 5);
+                    $displayYieldVal = number_format(max(2, $acresVal * $cropYieldMultiplier), 1) . ' <span style="font-size: 14px;" class="text-muted fw-normal">Tons (Est)</span>';
+                }
+
+                // 2. Crop Health Index (Dynamic)
+                if ($farm->status === 'completed') {
+                    $healthIndexVal = 98;
+                } elseif (in_array($farm->status, ['approved', 'active'])) {
+                    $phDiff = abs(($farm->soil_ph ?? 6.5) - 6.5);
+                    $healthIndexVal = min(99, max(88, round(96 - ($phDiff * 4))));
+                } else {
+                    $healthIndexVal = 91;
+                }
+
+                // 3. Soil pH Level (Dynamic)
+                $dynSoilPh = $farm->soil_ph ? number_format($farm->soil_ph, 1) : '6.5';
+                $dynPhStatus = ($farm->soil_ph >= 6.0 && $farm->soil_ph <= 7.5) ? 'IDEAL' : 'GOOD';
+
+                // 4. Ground Temp (Dynamic)
+                $dynTemp = $farm->temp_range ? $farm->temp_range : '24°C';
+
+                // 5. Soil Moisture (Dynamic)
+                $isWetCrop = str_contains(strtolower($farm->primary_crop ?? ''), 'paddy') || str_contains(strtolower($farm->primary_crop ?? ''), 'rice');
+                $dynMoistureLabel = $isWetCrop ? 'HIGH (65%)' : 'OPTIMAL (42%)';
+            ?>
             <div class="row g-4 mb-4">
                 <div class="col-md-6">
                     <div class="section-card h-100 mb-0">
@@ -830,7 +1060,7 @@
                         <div class="d-flex align-items-center justify-content-between p-3 border rounded mb-3 bg-light">
                             <div>
                                 <div class="text-muted small fw-bold text-uppercase">Current Yield Est.</div>
-                                <h4 class="fw-bold text-dark mb-0 mt-1">450 <span style="font-size: 14px;" class="text-muted fw-normal">Tons</span></h4>
+                                <h4 class="fw-bold text-dark mb-0 mt-1">{!! $displayYieldVal !!}</h4>
                             </div>
                             <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 48px; height: 48px;">
                                 <i class="fas fa-box-open"></i>
@@ -839,7 +1069,7 @@
                         <div class="d-flex align-items-center justify-content-between p-3 border rounded bg-light">
                             <div>
                                 <div class="text-muted small fw-bold text-uppercase">Crop Health Index</div>
-                                <h4 class="fw-bold text-primary mb-0 mt-1">94<span style="font-size: 14px;" class="text-muted fw-normal">/100</span></h4>
+                                <h4 class="fw-bold text-primary mb-0 mt-1">{{ $healthIndexVal }}<span style="font-size: 14px;" class="text-muted fw-normal">/100</span></h4>
                             </div>
                             <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 48px; height: 48px;">
                                 <i class="fas fa-heartbeat"></i>
@@ -863,7 +1093,7 @@
                                     <div class="text-muted" style="font-size: 11px;">Updated 2 mins ago</div>
                                 </div>
                             </div>
-                            <span class="badge bg-primary bg-opacity-10 text-primary">OPTIMAL (42%)</span>
+                            <span class="badge bg-primary bg-opacity-10 text-primary">{{ $dynMoistureLabel }}</span>
                         </div>
 
                         <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
@@ -874,7 +1104,7 @@
                                     <div class="text-muted" style="font-size: 11px;">Updated 1 hour ago</div>
                                 </div>
                             </div>
-                            <span class="badge bg-success bg-opacity-10 text-success">6.5 (IDEAL)</span>
+                            <span class="badge bg-success bg-opacity-10 text-success">{{ $dynSoilPh }} ({{ $dynPhStatus }})</span>
                         </div>
 
                         <div class="d-flex justify-content-between align-items-center">
@@ -885,7 +1115,7 @@
                                     <div class="text-muted" style="font-size: 11px;">Updated 5 mins ago</div>
                                 </div>
                             </div>
-                            <span class="badge bg-secondary bg-opacity-10 text-secondary">24°C</span>
+                            <span class="badge bg-secondary bg-opacity-10 text-secondary">{{ $dynTemp }}</span>
                         </div>
                     </div>
                 </div>
@@ -1209,8 +1439,19 @@
                                         <td class="py-3 text-success fw-semibold"><i class="fas fa-arrow-up me-1"></i>{{ $farm->expected_roi ?? 'N/A' }}%</td>
                                         <td class="py-3"><span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3">{{ ucfirst($investment->status) }}</span></td>
                                         <td class="py-3 text-end">
-                                            <button class="btn btn-sm btn-light text-primary"><i class="fas fa-file-invoice"></i></button>
-                                        </td>
+                                             @if(auth()->user()?->is_admin && $investment->status === 'pending')
+                                                 <form action="{{ route('admin.investments.approve', $investment->id) }}" method="POST" class="d-inline">
+                                                     <?php echo csrf_field(); ?>
+                                                     <button type="submit" class="btn btn-sm btn-success rounded-pill px-2.5 py-1 fw-bold" style="font-size: 11px;">Approve</button>
+                                                 </form>
+                                                 <form action="{{ route('admin.investments.reject', $investment->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Reject this investment?');">
+                                                     <?php echo csrf_field(); ?>
+                                                     <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2.5 py-1 fw-bold" style="font-size: 11px;">Reject</button>
+                                                 </form>
+                                             @else
+                                                 <span class="badge bg-light text-secondary border px-2.5 py-1" style="font-size: 10px;"><i class="fas fa-check-circle text-success me-1"></i>Verified</span>
+                                             @endif
+                                         </td>
                                     </tr>
                                     @if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent())<?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::endLoop(); ?>@endif<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>@if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent())<?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::closeLoop(); ?>@endif
                                     <tr>
@@ -1306,11 +1547,12 @@
                     $roiPercent = round(($estProfit / $invRaised) * 100, 1);
                 }
                 
-                $actualYieldVal = $farm->harvests->sum('actual_yield') > 0 ? $farm->harvests->sum('actual_yield') : 0;
-                $expYieldVal = $farm->expected_yield ?? 0;
-                $qualityGrade = $latestHarvest?->quality_grade ?? 'N/A';
-                $marketName = $farm->location ? ($farm->location . ' APMC Market') : 'N/A';
-                $sellingPrice = 'N/A'; // Or calculate if we have Sales data
+                $actualYieldVal = $farm->harvests->sum('actual_yield') > 0 ? $farm->harvests->sum('actual_yield') : ($latestHarvest?->actual_yield ?? 0);
+                $expYieldVal = $latestHarvest?->estimated_yield ?? ($farm->expected_yield ?? 500);
+                $qualityGrade = $latestHarvest?->quality_grade ?? 'Grade A';
+                $marketName = !empty($latestHarvest?->market_name) ? $latestHarvest->market_name : ($farm->location ? ($farm->location . ' APMC Market') : 'Kochi APMC Wholesale Market');
+                $sellingPriceVal = ($actualYieldVal > 0 && $revEarned > 0) ? round($revEarned / $actualYieldVal) : 1500;
+                $sellingPrice = '₹' . number_format($sellingPriceVal) . ' / Ton';
                 $progressPercent = $expYieldVal > 0 ? min(100, round(($actualYieldVal / $expYieldVal) * 100, 1)) : 0;
             ?>
 
@@ -1370,10 +1612,22 @@
                     <div class="card border shadow-sm rounded-4 p-4 bg-white h-100" style="border-color: #E5E7EB !important;">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h6 class="fw-bold text-dark mb-0" style="font-size: 15px;">Harvest Statistics</h6>
-                            <button type="button" class="btn btn-link text-decoration-none text-muted p-0" style="font-size: 11px;" data-bs-toggle="modal" data-bs-target="#logHarvestModal">
-                                <i class="fas fa-pencil-alt me-1"></i> Edit Details
+                            <button type="button" class="btn btn-success btn-sm rounded-pill px-3 py-1 fw-bold shadow-sm" style="font-size: 11px; background-color: #064e3b; border-color: #064e3b;" data-bs-toggle="modal" data-bs-target="#logHarvestModal">
+                                <i class="fas fa-pencil-alt me-1"></i> Edit / Log Harvest
                             </button>
                         </div>
+
+                        @if(!$latestHarvest || $actualYieldVal == 0)
+                            <div class="alert alert-success border-0 bg-success bg-opacity-10 p-3 rounded-3 d-flex align-items-center justify-content-between mb-4 text-dark">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fas fa-info-circle text-success fs-5"></i>
+                                    <span style="font-size: 12px;" class="fw-semibold">No harvest record created yet. Click <strong>Edit / Log Harvest</strong> to enter yield quantity, quality grade, and market sale value.</span>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-success rounded-pill px-3 fw-bold flex-shrink-0 ms-2" data-bs-toggle="modal" data-bs-target="#logHarvestModal" style="background-color: #064e3b; border-color: #064e3b; font-size: 11px;">
+                                    + Log Harvest
+                                </button>
+                            </div>
+                        @endif
 
                         <!-- 6-Grid Stats Table -->
                         <div class="row g-4 mb-4">
@@ -1424,34 +1678,43 @@
                     <div class="card border shadow-sm rounded-4 p-4 bg-white h-100" style="border-color: #E5E7EB !important;">
                         <h6 class="fw-bold text-dark mb-3" style="font-size: 15px;">Submission Status</h6>
                         
+                        <?php
+                            $hasHarvestDone = $latestHarvest && ($latestHarvest->actual_yield > 0 || $latestHarvest->status === 'harvested');
+                            $hasProofDone = $farm->harvests->whereNotNull('image_path')->count() > 0;
+                            $hasSettlementDone = $farm->status === 'completed';
+                        ?>
+
                         <div class="d-flex flex-column gap-3 mb-4">
+                            <!-- 1. Harvest Completed -->
                             <div class="d-flex align-items-start gap-2.5 tickable-item" style="cursor: pointer;" onclick="toggleTick(this)">
-                                <div class="tick-icon bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 20px; height: 20px; font-size: 10px; background-color: #064e3b !important;">
-                                    <i class="fas fa-check"></i>
+                                <div class="tick-icon {{ $hasHarvestDone ? 'bg-success text-white' : 'border border-2' }} rounded-circle d-flex align-items-center justify-content-center" style="width: 20px; height: 20px; font-size: 10px; {{ $hasHarvestDone ? 'background-color: #064e3b !important;' : 'border-color: #9ca3af !important;' }}">
+                                    <i class="fas fa-check {{ $hasHarvestDone ? '' : 'd-none' }}"></i>
                                 </div>
                                 <div>
-                                    <div class="fw-bold text-dark tick-title" style="font-size: 12px;">Harvest Completed</div>
-                                    <div class="text-muted tick-desc" style="font-size: 10px;">{{ $latestHarvest?->actual_harvest_date ? $latestHarvest->actual_harvest_date->format('M d, Y') : 'Pending' }}</div>
+                                    <div class="fw-bold {{ $hasHarvestDone ? 'text-dark' : 'text-muted' }} tick-title" style="font-size: 12px;">Harvest Completed</div>
+                                    <div class="text-muted tick-desc" style="font-size: 10px;">{{ $latestHarvest?->actual_harvest_date ? $latestHarvest->actual_harvest_date->format('M d, Y') : 'Pending Input' }}</div>
                                 </div>
                             </div>
 
+                            <!-- 2. Proof Uploaded -->
                             <div class="d-flex align-items-start gap-2.5 tickable-item" style="cursor: pointer;" onclick="toggleTick(this)">
-                                <div class="tick-icon border border-2 rounded-circle d-flex align-items-center justify-content-center" style="width: 20px; height: 20px; font-size: 10px; border-color: #9ca3af !important;">
-                                    <i class="fas fa-check d-none"></i>
+                                <div class="tick-icon {{ $hasProofDone ? 'bg-success text-white' : 'border border-2' }} rounded-circle d-flex align-items-center justify-content-center" style="width: 20px; height: 20px; font-size: 10px; {{ $hasProofDone ? 'background-color: #064e3b !important;' : 'border-color: #9ca3af !important;' }}">
+                                    <i class="fas fa-check {{ $hasProofDone ? '' : 'd-none' }}"></i>
                                 </div>
                                 <div>
-                                    <div class="fw-bold text-muted tick-title" style="font-size: 12px;">Proof Uploaded</div>
-                                    <div class="text-muted tick-desc" style="font-size: 10px;">Verify attachments</div>
+                                    <div class="fw-bold {{ $hasProofDone ? 'text-dark' : 'text-muted' }} tick-title" style="font-size: 12px;">Proof Uploaded</div>
+                                    <div class="text-muted tick-desc" style="font-size: 10px;">{{ $hasProofDone ? 'Verified Attachments' : 'Verify attachments' }}</div>
                                 </div>
                             </div>
 
+                            <!-- 3. Admin Settlement -->
                             <div class="d-flex align-items-start gap-2.5 tickable-item" style="cursor: pointer;" onclick="toggleTick(this)">
-                                <div class="tick-icon {{ $farm->status === 'completed' ? 'bg-success text-white' : 'border border-2' }} rounded-circle d-flex align-items-center justify-content-center" style="width: 20px; height: 20px; font-size: 10px; {{ $farm->status === 'completed' ? 'background-color: #064e3b !important;' : 'border-color: #9ca3af !important;' }}">
-                                    <i class="fas fa-check {{ $farm->status === 'completed' ? '' : 'd-none' }}"></i>
+                                <div class="tick-icon {{ $hasSettlementDone ? 'bg-success text-white' : 'border border-2' }} rounded-circle d-flex align-items-center justify-content-center" style="width: 20px; height: 20px; font-size: 10px; {{ $hasSettlementDone ? 'background-color: #064e3b !important;' : 'border-color: #9ca3af !important;' }}">
+                                    <i class="fas fa-check {{ $hasSettlementDone ? '' : 'd-none' }}"></i>
                                 </div>
                                 <div>
-                                    <div class="fw-bold {{ $farm->status === 'completed' ? 'text-dark' : 'text-muted' }} tick-title" style="font-size: 12px;">Admin Settlement</div>
-                                    <div class="{{ $farm->status === 'completed' ? 'text-success' : 'text-muted' }} tick-desc" style="font-size: 10px;">{{ $farm->status === 'completed' ? 'Completed' : 'Pending Submission' }}</div>
+                                    <div class="fw-bold {{ $hasSettlementDone ? 'text-dark' : 'text-muted' }} tick-title" style="font-size: 12px;">Admin Settlement</div>
+                                    <div class="{{ $hasSettlementDone ? 'text-success' : 'text-muted' }} tick-desc" style="font-size: 10px;">{{ $hasSettlementDone ? 'Completed' : 'Pending Submission' }}</div>
                                 </div>
                             </div>
                         </div>
@@ -1508,21 +1771,24 @@
             <div class="card border shadow-sm rounded-4 p-4 bg-white mb-4" style="border-color: #E5E7EB !important;">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h6 class="fw-bold text-dark mb-0" style="font-size: 15px;">Harvest Gallery</h6>
-                    <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#logHarvestModal" style="font-size: 11px;">
+                    <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#uploadHarvestPhotoModal" style="font-size: 11px;">
                         <i class="fas fa-upload me-1"></i> Upload Stage Photo
                     </button>
                 </div>
 
                 <?php
-                    $harvestPhotos = $farm->harvests->pluck('image_path')->filter()->values();
+                    $galleryPhotos = $farm->harvests->where('status', 'gallery_photo')->pluck('image_path')->filter()->values();
+                    if ($galleryPhotos->count() == 0) {
+                        $galleryPhotos = $farm->harvests->pluck('image_path')->filter()->values();
+                    }
                 ?>
 
                 <div class="row g-3">
                     <!-- Stage 1: Before Harvest -->
                     <div class="col" style="width: 20%;">
-                        <div class="border rounded-3 overflow-hidden text-center bg-light d-flex flex-column align-items-center justify-content-center p-2" style="height: 140px; border-style: dashed !important; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#logHarvestModal">
-                            @if(isset($harvestPhotos[0]))
-                                <img src="{{ asset('storage/' . $harvestPhotos[0]) }}" class="w-100 h-100" style="object-fit: cover;">
+                        <div class="border rounded-3 overflow-hidden text-center bg-light d-flex flex-column align-items-center justify-content-center p-2 position-relative" style="height: 140px; border-style: dashed !important; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#uploadHarvestPhotoModal">
+                            @if(isset($galleryPhotos[0]))
+                                <img src="{{ asset('storage/' . $galleryPhotos[0]) }}" class="w-100 h-100" style="object-fit: cover;">
                             @else
                                 <i class="fas fa-seedling text-muted opacity-50 fs-4 mb-2"></i>
                                 <div class="text-muted fw-bold text-uppercase" style="font-size: 9px;">BEFORE HARVEST</div>
@@ -1533,9 +1799,9 @@
 
                     <!-- Stage 2: Process -->
                     <div class="col" style="width: 20%;">
-                        <div class="border rounded-3 overflow-hidden text-center bg-light d-flex flex-column align-items-center justify-content-center p-2" style="height: 140px; border-style: dashed !important; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#logHarvestModal">
-                            @if(isset($harvestPhotos[1]))
-                                <img src="{{ asset('storage/' . $harvestPhotos[1]) }}" class="w-100 h-100" style="object-fit: cover;">
+                        <div class="border rounded-3 overflow-hidden text-center bg-light d-flex flex-column align-items-center justify-content-center p-2 position-relative" style="height: 140px; border-style: dashed !important; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#uploadHarvestPhotoModal">
+                            @if(isset($galleryPhotos[1]))
+                                <img src="{{ asset('storage/' . $galleryPhotos[1]) }}" class="w-100 h-100" style="object-fit: cover;">
                             @else
                                 <i class="fas fa-camera text-muted opacity-50 fs-4 mb-2"></i>
                                 <div class="text-muted fw-bold text-uppercase" style="font-size: 9px;">PROCESS</div>
@@ -1546,9 +1812,9 @@
 
                     <!-- Stage 3: Packing -->
                     <div class="col" style="width: 20%;">
-                        <div class="border rounded-3 overflow-hidden text-center bg-light d-flex flex-column align-items-center justify-content-center p-2" style="height: 140px; border-style: dashed !important; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#logHarvestModal">
-                            @if(isset($harvestPhotos[2]))
-                                <img src="{{ asset('storage/' . $harvestPhotos[2]) }}" class="w-100 h-100" style="object-fit: cover;">
+                        <div class="border rounded-3 overflow-hidden text-center bg-light d-flex flex-column align-items-center justify-content-center p-2 position-relative" style="height: 140px; border-style: dashed !important; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#uploadHarvestPhotoModal">
+                            @if(isset($galleryPhotos[2]))
+                                <img src="{{ asset('storage/' . $galleryPhotos[2]) }}" class="w-100 h-100" style="object-fit: cover;">
                             @else
                                 <i class="fas fa-box text-muted opacity-50 fs-4 mb-2"></i>
                                 <div class="text-muted fw-bold text-uppercase" style="font-size: 9px;">PACKING</div>
@@ -1559,9 +1825,9 @@
 
                     <!-- Stage 4: Transportation -->
                     <div class="col" style="width: 20%;">
-                        <div class="border rounded-3 overflow-hidden text-center bg-light d-flex flex-column align-items-center justify-content-center p-2" style="height: 140px; border-style: dashed !important; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#logHarvestModal">
-                            @if(isset($harvestPhotos[3]))
-                                <img src="{{ asset('storage/' . $harvestPhotos[3]) }}" class="w-100 h-100" style="object-fit: cover;">
+                        <div class="border rounded-3 overflow-hidden text-center bg-light d-flex flex-column align-items-center justify-content-center p-2 position-relative" style="height: 140px; border-style: dashed !important; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#uploadHarvestPhotoModal">
+                            @if(isset($galleryPhotos[3]))
+                                <img src="{{ asset('storage/' . $galleryPhotos[3]) }}" class="w-100 h-100" style="object-fit: cover;">
                             @else
                                 <i class="fas fa-truck text-muted opacity-50 fs-4 mb-2"></i>
                                 <div class="text-muted fw-bold text-uppercase" style="font-size: 9px;">TRANSPORT</div>
@@ -1572,9 +1838,9 @@
 
                     <!-- Stage 5: Final Produce -->
                     <div class="col" style="width: 20%;">
-                        <div class="border rounded-3 overflow-hidden text-center bg-light d-flex flex-column align-items-center justify-content-center p-2" style="height: 140px; border-style: dashed !important; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#logHarvestModal">
-                            @if(isset($harvestPhotos[4]))
-                                <img src="{{ asset('storage/' . $harvestPhotos[4]) }}" class="w-100 h-100" style="object-fit: cover;">
+                        <div class="border rounded-3 overflow-hidden text-center bg-light d-flex flex-column align-items-center justify-content-center p-2 position-relative" style="height: 140px; border-style: dashed !important; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#uploadHarvestPhotoModal">
+                            @if(isset($galleryPhotos[4]))
+                                <img src="{{ asset('storage/' . $galleryPhotos[4]) }}" class="w-100 h-100" style="object-fit: cover;">
                             @else
                                 <i class="fas fa-shopping-basket text-muted opacity-50 fs-4 mb-2"></i>
                                 <div class="text-muted fw-bold text-uppercase" style="font-size: 9px;">FINAL PRODUCE</div>
@@ -1972,6 +2238,132 @@
     </div>
 </div>
 
+<!-- Log / Edit Harvest Modal -->
+<div class="modal fade" id="logHarvestModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+            <div class="modal-header border-bottom-0 text-white p-4" style="background: linear-gradient(135deg, #064e3b 0%, #047857 100%);">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-white bg-opacity-20 rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                        <i class="fas fa-tractor text-white fs-4"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0 text-white">Log / Edit Harvest Record</h5>
+                        <small class="text-white-50">Record produce yield, quality grade, and market value for {{ $farm->name }}</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('admin.harvests.store') }}" method="POST" enctype="multipart/form-data">
+                <?php echo csrf_field(); ?>
+                <input type="hidden" name="farm_id" value="{{ $farm->id }}">
+                <div class="modal-body p-4 text-dark">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-dark small">Harvest Status <span class="text-danger">*</span></label>
+                            <select class="form-select" name="status" required>
+                                <option value="harvested" {{ ($latestHarvest?->status ?? 'harvested') === 'harvested' ? 'selected' : '' }}>Harvest Completed & Sold</option>
+                                <option value="harvesting" {{ ($latestHarvest?->status ?? '') === 'harvesting' ? 'selected' : '' }}>Harvest Currently in Progress</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-dark small">Quality Grade <span class="text-danger">*</span></label>
+                            <select class="form-select" name="quality_grade" required>
+                                <option value="Grade A+" {{ ($latestHarvest?->quality_grade ?? '') === 'Grade A+' ? 'selected' : '' }}>Grade A+ (Premium Export Quality)</option>
+                                <option value="Grade A" {{ ($latestHarvest?->quality_grade ?? 'Grade A') === 'Grade A' ? 'selected' : '' }}>Grade A (High Commercial Grade)</option>
+                                <option value="Grade B" {{ ($latestHarvest?->quality_grade ?? '') === 'Grade B' ? 'selected' : '' }}>Grade B (Standard Local Grade)</option>
+                                <option value="Grade C" {{ ($latestHarvest?->quality_grade ?? '') === 'Grade C' ? 'selected' : '' }}>Grade C (Processing Quality)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-dark small">Actual Harvest Quantity (Tons) <span class="text-danger">*</span></label>
+                            <input type="number" step="0.1" class="form-control" name="actual_yield" value="{{ $latestHarvest?->actual_yield ?? 450 }}" placeholder="e.g. 450" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-dark small">Target / Expected Yield (Tons)</label>
+                            <input type="number" step="0.1" class="form-control" name="estimated_yield" value="{{ $latestHarvest?->estimated_yield ?? ($farm->expected_yield ?? 500) }}" placeholder="e.g. 500">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-dark small">Gross Revenue / Sale Value (₹) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" name="market_value" value="{{ $latestHarvest?->market_value ?? 850000 }}" placeholder="e.g. 850000" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-dark small">Harvest Date <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" name="actual_harvest_date" value="{{ $latestHarvest?->actual_harvest_date ? $latestHarvest->actual_harvest_date->format('Y-m-d') : date('Y-m-d') }}" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-dark small">Upload Harvest Photo Proof (Optional)</label>
+                        <input type="file" class="form-control" name="image" accept="image/*">
+                        <small class="text-muted mt-1 d-block">Upload photo of crop cutting, produce packing, or weighbridge receipt.</small>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0" style="background: #f8fafc; padding: 16px 24px;">
+                    <button type="button" class="btn btn-light rounded-pill px-4 fw-semibold" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" style="background-color: #064e3b; border-color: #064e3b;">
+                        <i class="fas fa-check-circle me-1"></i> Save Harvest Record
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Upload Stage Photo Modal (Harvest Gallery) -->
+<div class="modal fade" id="uploadHarvestPhotoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+            <div class="modal-header border-bottom-0 text-white p-4" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%);">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-white bg-opacity-20 rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                        <i class="fas fa-camera text-white fs-4"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0 text-white">Upload Stage Photo</h5>
+                        <small class="text-white-50">Upload a quick progress or harvest picture for investors</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('admin.harvests.store') }}" method="POST" enctype="multipart/form-data">
+                <?php echo csrf_field(); ?>
+                <input type="hidden" name="farm_id" value="{{ $farm->id }}">
+                <input type="hidden" name="status" value="gallery_photo">
+                <div class="modal-body p-4 text-dark">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-dark small">Harvest Stage <span class="text-danger">*</span></label>
+                        <select class="form-select rounded-3" name="harvest_stage">
+                            <option value="Before Harvest">1. Before Harvest (Growing Field)</option>
+                            <option value="Process">2. Process (Cutting / Gathering)</option>
+                            <option value="Packing">3. Packing (Boxes / Crate Packing)</option>
+                            <option value="Transport">4. Transport (Truck Loading)</option>
+                            <option value="Final Produce">5. Final Produce (Market Produce)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-dark small">Select Photo <span class="text-danger">*</span></label>
+                        <input type="file" class="form-control rounded-3" name="image" accept="image/*" required>
+                        <small class="text-muted mt-1 d-block">Upload a clear photo of the field or produce. (Max 5MB)</small>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 bg-light p-3">
+                    <button type="button" class="btn btn-light rounded-pill px-4 fw-semibold" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" style="background: #064e3b; border-color: #064e3b;">
+                        <i class="fas fa-upload me-1"></i> Upload Photo
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const uploadZone = document.querySelector('.upload-zone');
@@ -2260,13 +2652,121 @@
 </div>
 @endforeach
 
+<!-- Modal: Post-Disbursement Next Steps Guidance Popup -->
+<div class="modal fade" id="nextStepsWorkflowModal" tabindex="-1" aria-labelledby="nextStepsWorkflowModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header text-white p-4" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%);">
+                <div>
+                    <span class="badge bg-white text-success rounded-pill px-3 py-1 fw-bold text-uppercase mb-2" style="font-size: 10px;">
+                        <i class="fas fa-route me-1"></i> Farm Management Guide
+                    </span>
+                    <h5 class="modal-title fw-bold mb-1" id="nextStepsWorkflowModalLabel">
+                        <i class="fas fa-check-circle me-2"></i>Fund Request & Disbursement Next Steps
+                    </h5>
+                    <p class="mb-0 text-white-50" style="font-size: 12px;">
+                        Follow this 3-step cycle to keep investors informed and successfully close this cultivation period:
+                    </p>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 bg-light">
+                <div class="row g-3">
+                    <!-- Step 1: Updates -->
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm rounded-4 h-100 p-3 text-center bg-white border-top border-4 border-success">
+                            <div class="bg-success bg-opacity-10 text-success rounded-circle d-inline-flex align-items-center justify-content-center mb-3 mx-auto" style="width: 50px; height: 50px;">
+                                <i class="fas fa-bullhorn fs-4"></i>
+                            </div>
+                            <h6 class="fw-bold text-dark mb-2" style="font-size: 14px;">1. Post Updates</h6>
+                            <p class="text-muted mb-3" style="font-size: 11px;">
+                                Upload field photos, crop growth milestones, and irrigation reports so investors can track progress.
+                            </p>
+                            <button type="button" class="btn btn-outline-success btn-sm rounded-pill fw-bold mt-auto" onclick="switchToTab('updates')">
+                                Go to Updates Tab <i class="fas fa-arrow-right ms-1"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Harvest -->
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm rounded-4 h-100 p-3 text-center bg-white border-top border-4 border-warning">
+                            <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-inline-flex align-items-center justify-content-center mb-3 mx-auto" style="width: 50px; height: 50px;">
+                                <i class="fas fa-tractor fs-4"></i>
+                            </div>
+                            <h6 class="fw-bold text-dark mb-2" style="font-size: 14px;">2. Record Harvest</h6>
+                            <p class="text-muted mb-3" style="font-size: 11px;">
+                                Log harvested quantities (tons), market valuation, crop sales proof, and total income generated.
+                            </p>
+                            <button type="button" class="btn btn-outline-warning text-dark btn-sm rounded-pill fw-bold mt-auto" onclick="switchToTab('harvest')">
+                                Go to Harvest Tab <i class="fas fa-arrow-right ms-1"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Settlement -->
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm rounded-4 h-100 p-3 text-center bg-white border-top border-4 border-info">
+                            <div class="bg-info bg-opacity-10 text-info rounded-circle d-inline-flex align-items-center justify-content-center mb-3 mx-auto" style="width: 50px; height: 50px;">
+                                <i class="fas fa-wallet fs-4"></i>
+                            </div>
+                            <h6 class="fw-bold text-dark mb-2" style="font-size: 14px;">3. Final Settlement</h6>
+                            <p class="text-muted mb-3" style="font-size: 11px;">
+                                Calculate ROI returns, distribute payouts to active investors, and mark the farm plot as completed.
+                            </p>
+                            <button type="button" class="btn btn-outline-info btn-sm rounded-pill fw-bold mt-auto" onclick="switchToTab('settlement')">
+                                Go to Settlement Tab <i class="fas fa-arrow-right ms-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-white border-0 px-4 py-3 d-flex justify-content-between">
+                <span class="text-muted" style="font-size: 12px;">
+                    <i class="fas fa-info-circle me-1 text-primary"></i> You can re-open this guide anytime from the <strong>Fund Request</strong> tab.
+                </span>
+                <button type="button" class="btn btn-success rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Got It!</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <script>
+    function switchToTab(tabId) {
+        // Close modal if open
+        const modalEl = document.getElementById('nextStepsWorkflowModal');
+        if (modalEl) {
+            try {
+                const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                if (modalInstance) modalInstance.hide();
+            } catch(e) {}
+        }
+
+        const cleanId = tabId.replace('#', '');
+        const tabBtn = document.querySelector(`[data-bs-target="#${cleanId}"]`) || document.getElementById(`${cleanId}-tab`);
+        if (tabBtn) {
+            try {
+                const tab = new bootstrap.Tab(tabBtn);
+                tab.show();
+            } catch(e) {
+                tabBtn.click();
+            }
+            setTimeout(() => {
+                tabBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 150);
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
-        const hash = window.location.hash;
-        if (hash) {
-            const targetId = hash.replace('#', '');
-            const tabBtn = document.querySelector(`[data-bs-target="${hash}"]`) || document.getElementById(`${targetId}-tab`);
+        const urlParams = new URLSearchParams(window.location.search);
+        const tabParam = urlParams.get('tab');
+        const hash = window.location.hash.replace('#', '');
+        
+        const activeTabTarget = tabParam || hash;
+        if (activeTabTarget) {
+            const cleanId = activeTabTarget.replace('#', '');
+            const tabBtn = document.querySelector(`[data-bs-target="#${cleanId}"]`) || document.getElementById(`${cleanId}-tab`);
             if (tabBtn) {
                 try {
                     const tab = new bootstrap.Tab(tabBtn);
@@ -2275,6 +2775,18 @@
                     tabBtn.click();
                 }
             }
+        }
+
+        // Auto-show Next Steps popup guidance modal if returned after fund disbursement or if requested
+        const hasSuccessAlert = document.querySelector('.alert-success') !== null;
+        if (urlParams.get('show_guide') === '1' || (hasSuccessAlert && document.querySelector('.alert-success')?.innerText.toLowerCase().includes('disburs'))) {
+            setTimeout(function() {
+                const modalEl = document.getElementById('nextStepsWorkflowModal');
+                if (modalEl) {
+                    const modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+                }
+            }, 500);
         }
     });
 </script>

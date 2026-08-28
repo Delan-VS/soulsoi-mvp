@@ -19,6 +19,10 @@ class InvestorController extends Controller
 
     public function invest(Request $request, Farm $farm)
     {
+        if ($farm->funding_status === 'closed' || $farm->status === 'completed') {
+            return back()->with('error', 'This farm cycle has reached 100% funding and is currently closed to new investment pledges.');
+        }
+
         $minVal = $farm->min_investment ?? 500;
         $maxVal = $farm->max_investment ?? 10000000;
         $request->validate([
@@ -26,9 +30,15 @@ class InvestorController extends Controller
             'payment_method' => 'nullable|string',
         ]);
 
-        $remainingTarget = ($farm->funding_target ?? 800000) - ($farm->funding_raised ?? 0);
-        
-        if ($request->amount > $remainingTarget && $remainingTarget > 0) {
+        $currentRaised = max($farm->funding_raised ?? 0, $farm->investments ? $farm->investments->whereIn('status', ['approved', 'active'])->sum('amount') : 0);
+        $remainingTarget = ($farm->funding_target ?? 350000) - $currentRaised;
+
+        if ($remainingTarget <= 0) {
+            $farm->update(['funding_status' => 'closed']);
+            return back()->with('error', 'This farm is fully funded and cannot accept further investments.');
+        }
+
+        if ($request->amount > $remainingTarget) {
             return back()->with('error', 'Amount exceeds the remaining funding target of ₹' . number_format($remainingTarget));
         }
 
@@ -49,7 +59,7 @@ class InvestorController extends Controller
 
         $investment = Investment::create($investmentData);
 
-        $payMethodName = match(strtolower($request->payment_method ?? 'upi')) {
+        $payMethodName = match (strtolower($request->payment_method ?? 'upi')) {
             'upi' => 'UPI Payment',
             'net_banking' => 'Net Banking',
             'bank_transfer' => 'Bank Transfer (NEFT/RTGS)',
@@ -69,8 +79,8 @@ class InvestorController extends Controller
     public function trackInvestment(Farm $farm)
     {
         $investment = Investment::where('user_id', auth()->id())
-                                ->where('farm_id', $farm->id)
-                                ->firstOrFail();
+            ->where('farm_id', $farm->id)
+            ->firstOrFail();
 
         // Calculate expected returns based on the actual investment
         $expectedReturns = $investment->amount + ($investment->amount * ($farm->expected_roi ?? 18) / 100);
@@ -87,7 +97,7 @@ class InvestorController extends Controller
                 'expected_harvest' => now()->addMonths($farm->yielding_period ?? 6)->format('M d, Y'),
                 'days_to_harvest' => (int) now()->diffInDays(now()->addMonths($farm->yielding_period ?? 6))
             ],
-            'updates' => $farm->updates()->latest()->get()->map(function($update) {
+            'updates' => $farm->updates()->latest()->get()->map(function ($update) {
                 return [
                     'date' => $update->created_at->format('M d, Y'),
                     'title' => $update->title,

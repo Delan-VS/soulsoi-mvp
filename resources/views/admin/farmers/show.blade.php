@@ -84,8 +84,8 @@
             <a href="{{ $backUrl }}" class="btn btn-light fw-semibold text-muted me-2" style="font-size: 13px; border-radius: 8px;">
                 <i class="fas fa-arrow-left me-1"></i> Back
             </a>
-            <a href="{{ route('reports.export', ['type' => 'farmers']) }}" class="btn btn-outline-success fw-semibold" style="font-size: 13px; border-radius: 8px; border-color: var(--soil-primary); color: var(--soil-primary);">
-                <i class="fas fa-file-download me-1"></i> Export Profile PDF
+            <a href="{{ route('admin.farmers.pdf', $farmer) }}" target="_blank" class="btn btn-outline-success fw-semibold" style="font-size: 13px; border-radius: 8px; border-color: var(--soil-primary); color: var(--soil-primary);">
+                <i class="fas fa-file-pdf me-1"></i> Export Profile PDF
             </a>
         </div>
     </div>
@@ -180,7 +180,7 @@
                     </div>
                     <div class="col-md-6">
                         <div class="info-label">Primary Crop</div>
-                        <div class="info-value">{{ $farmer?->farms?->first()?->primary_crop ?? 'General Crops' }}</div>
+                        <div class="info-value">{{ $farmer?->farms?->pluck('primary_crop')->filter()->unique()->implode(', ') ?: ($farmer?->farms?->count() ? 'Multiple Crops' : 'Not Registered Yet') }}</div>
                     </div>
                     
                     <!-- Cleaned Address Formatting -->
@@ -190,12 +190,15 @@
                             $farmer?->village,
                             $farmer?->district,
                             $farmer?->state
-                        ]);
-                        $cleanAddress = implode(', ', array_unique($addressParts));
+                        ], function($val) {
+                            return !empty($val) && strtolower(trim($val)) !== 'n/a';
+                        });
+                        $cleanAddress = !empty($addressParts) ? implode(', ', array_unique($addressParts)) : 'Kerala, India';
+                        $mapSearchQuery = urlencode($cleanAddress);
                     ?>
                     <div class="col-12">
                         <div class="info-label">Residential Address</div>
-                        <div class="info-value">{{ !empty($cleanAddress) ? $cleanAddress : 'Anantapur, Andhra Pradesh, India' }}</div>
+                        <div class="info-value">{{ $cleanAddress }}</div>
                     </div>
 
                     <!-- Government ID -->
@@ -207,7 +210,7 @@
                             <div>
                                 <div class="info-label">Government ID (Aadhar Number)</div>
                                 <div class="fw-bold text-dark font-monospace" style="font-size: 14px;">
-                                    {{ $farmer?->aadhar_number ? substr_replace($farmer->aadhar_number, str_repeat('X', 8), 0, 8) : 'XXXXXXXX9012' }}
+                                    {{ $farmer?->aadhar_number && $farmer->aadhar_number !== 'N/A' ? substr_replace($farmer->aadhar_number, str_repeat('X', 8), 0, 8) : 'XXXXXXXX9012' }}
                                 </div>
                             </div>
                         </div>
@@ -315,7 +318,7 @@
                         <i class="fas fa-map-marked-alt text-danger fs-5"></i>
                         <h6 class="fw-bold mb-0 text-dark" style="font-size: 14px;">Farmer Location Map</h6>
                     </div>
-                    <a href="https://maps.google.com/?q={{ urlencode($cleanAddress . ', India') }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1" style="font-size: 11px;">
+                    <a href="https://www.google.com/maps/search/?api=1&query={{ $mapSearchQuery }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1" style="font-size: 11px;">
                         <i class="fas fa-external-link-alt me-1"></i> Open Google Maps
                     </a>
                 </div>
@@ -325,13 +328,13 @@
                         height="220" 
                         frameborder="0" 
                         style="border: 0; display: block;" 
-                        src="https://maps.google.com/maps?q={{ urlencode($cleanAddress . ', India') }}&t=m&z=12&ie=UTF8&iwloc=&output=embed"
+                        src="https://maps.google.com/maps?q={{ $mapSearchQuery }}&t=m&z=12&ie=UTF8&iwloc=&output=embed"
                         allowfullscreen>
                     </iframe>
                     <div class="p-2.5 bg-light border-top d-flex justify-content-between align-items-center px-3" style="font-size: 11px;">
                         <span class="text-muted">
                             <i class="fas fa-location-dot text-danger me-1"></i>
-                            <strong>Verified Region:</strong> {{ !empty($cleanAddress) ? $cleanAddress : 'Anantapur, Andhra Pradesh' }}
+                            <strong>Verified Region:</strong> {{ $cleanAddress }}
                         </span>
                         <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2.5 py-1 rounded-pill">
                             <i class="fas fa-check-circle me-1"></i> GPS Coordinates Matched
@@ -387,22 +390,74 @@
                 <!-- Approval / Rejection Section for Pending Farmers -->
                 @if($farmer->overall_status === 'pending')
                     <div class="p-3 bg-light rounded-3 border text-start mb-3">
-                        <h6 class="fw-bold text-dark mb-2" style="font-size: 11px; text-transform: uppercase;">Mandatory Checklist</h6>
-                        <div class="form-check mb-2">
-                            <input class="form-check-input doc-checklist-check" type="checkbox" id="check_id_proof">
-                            <label class="form-check-label text-dark fw-semibold" for="check_id_proof" style="font-size: 12px;">Aadhar / Identity Verified</label>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="fw-bold text-dark mb-0" style="font-size: 11px; text-transform: uppercase;">Mandatory Document Verification</h6>
+                            <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-bold" style="font-size: 11px; color: var(--soil-primary);" onclick="selectAllChecklistItems()">Check All</button>
                         </div>
-                        <div class="form-check mb-2">
-                            <input class="form-check-input doc-checklist-check" type="checkbox" id="check_address_proof">
-                            <label class="form-check-label text-dark fw-semibold" for="check_address_proof" style="font-size: 12px;">Residential Address Verified</label>
+
+                        <!-- 1. Aadhaar Front -->
+                        <div class="form-check mb-2 d-flex align-items-center justify-content-between">
+                            <div>
+                                <input class="form-check-input doc-checklist-check me-2" type="checkbox" id="check_aadhar_front">
+                                <label class="form-check-label text-dark fw-semibold" for="check_aadhar_front" style="font-size: 12px;">Aadhaar Front</label>
+                            </div>
+                            @if($farmer->aadhar_front_path)
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-0.5" style="font-size: 10px;">Uploaded</span>
+                            @else
+                                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2 py-0.5" style="font-size: 10px;">Missing</span>
+                            @endif
                         </div>
-                        <div class="form-check mb-2">
-                            <input class="form-check-input doc-checklist-check" type="checkbox" id="check_bank_acc">
-                            <label class="form-check-label text-dark fw-semibold" for="check_bank_acc" style="font-size: 12px;">Bank Account Verified</label>
+
+                        <!-- 2. Aadhaar Back -->
+                        <div class="form-check mb-2 d-flex align-items-center justify-content-between">
+                            <div>
+                                <input class="form-check-input doc-checklist-check me-2" type="checkbox" id="check_aadhar_back">
+                                <label class="form-check-label text-dark fw-semibold" for="check_aadhar_back" style="font-size: 12px;">Aadhaar Back</label>
+                            </div>
+                            @if($farmer->aadhar_back_path)
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-0.5" style="font-size: 10px;">Uploaded</span>
+                            @else
+                                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2 py-0.5" style="font-size: 10px;">Missing</span>
+                            @endif
                         </div>
-                        <div class="form-check mb-0">
-                            <input class="form-check-input doc-checklist-check" type="checkbox" id="check_land_rights">
-                            <label class="form-check-label text-dark fw-semibold" for="check_land_rights" style="font-size: 12px;">Land Ownership Verified</label>
+
+                        <!-- 3. PAN Card -->
+                        <div class="form-check mb-2 d-flex align-items-center justify-content-between">
+                            <div>
+                                <input class="form-check-input doc-checklist-check me-2" type="checkbox" id="check_pan_card">
+                                <label class="form-check-label text-dark fw-semibold" for="check_pan_card" style="font-size: 12px;">PAN Card</label>
+                            </div>
+                            @if($farmer->pan_card_path)
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-0.5" style="font-size: 10px;">Uploaded</span>
+                            @else
+                                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2 py-0.5" style="font-size: 10px;">Missing</span>
+                            @endif
+                        </div>
+
+                        <!-- 4. Land Certificate / Ownership -->
+                        <div class="form-check mb-2 d-flex align-items-center justify-content-between">
+                            <div>
+                                <input class="form-check-input doc-checklist-check me-2" type="checkbox" id="check_land_cert">
+                                <label class="form-check-label text-dark fw-semibold" for="check_land_cert" style="font-size: 12px;">Land / ID Document</label>
+                            </div>
+                            @if($farmer->land_certificate_path || $farmer->farm_ownership_doc_path)
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-0.5" style="font-size: 10px;">Uploaded</span>
+                            @else
+                                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2 py-0.5" style="font-size: 10px;">Missing</span>
+                            @endif
+                        </div>
+
+                        <!-- 5. Bank Account Details -->
+                        <div class="form-check mb-0 d-flex align-items-center justify-content-between">
+                            <div>
+                                <input class="form-check-input doc-checklist-check me-2" type="checkbox" id="check_bank_details">
+                                <label class="form-check-label text-dark fw-semibold" for="check_bank_details" style="font-size: 12px;">Bank Details</label>
+                            </div>
+                            @if($farmer->account_number && $farmer->account_number !== 'N/A')
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-0.5" style="font-size: 10px;">Provided</span>
+                            @else
+                                <span class="badge bg-warning bg-opacity-10 text-dark border border-warning border-opacity-25 px-2 py-0.5" style="font-size: 10px;">Pending</span>
+                            @endif
                         </div>
                     </div>
 
@@ -449,6 +504,16 @@
                         </a>
                     @endif
 
+                    @if($farmer->pan_card_path)
+                        <a href="{{ route('admin.farmers.download', [$farmer, base64_encode($farmer->pan_card_path)]) }}" target="_blank" class="p-2.5 rounded-3 bg-light border d-flex justify-content-between align-items-center text-decoration-none">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="fas fa-file-pdf text-danger"></i>
+                                <span class="fw-semibold text-dark" style="font-size: 12px;">PAN Card</span>
+                            </div>
+                            <i class="fas fa-external-link-alt text-muted" style="font-size: 11px;"></i>
+                        </a>
+                    @endif
+
                     @if($farmer->bank_proof_path)
                         <a href="{{ route('admin.farmers.download', [$farmer, base64_encode($farmer->bank_proof_path)]) }}" target="_blank" class="p-2.5 rounded-3 bg-light border d-flex justify-content-between align-items-center text-decoration-none">
                             <div class="d-flex align-items-center gap-2">
@@ -473,13 +538,13 @@
                         <a href="{{ route('admin.farmers.download', [$farmer, base64_encode($farmer->land_certificate_path)]) }}" target="_blank" class="p-2.5 rounded-3 bg-light border d-flex justify-content-between align-items-center text-decoration-none">
                             <div class="d-flex align-items-center gap-2">
                                 <i class="fas fa-file-pdf text-danger"></i>
-                                <span class="fw-semibold text-dark" style="font-size: 12px;">Land Certificate</span>
+                                <span class="fw-semibold text-dark" style="font-size: 12px;">Land Certificate / Additional Doc</span>
                             </div>
                             <i class="fas fa-external-link-alt text-muted" style="font-size: 11px;"></i>
                         </a>
                     @endif
 
-                    @if(!$farmer->aadhar_front_path && !$farmer->aadhar_back_path && !$farmer->bank_proof_path && !$farmer->farm_ownership_doc_path && !$farmer->land_certificate_path)
+                    @if(!$farmer->aadhar_front_path && !$farmer->aadhar_back_path && !$farmer->pan_card_path && !$farmer->bank_proof_path && !$farmer->farm_ownership_doc_path && !$farmer->land_certificate_path)
                         <div class="text-muted text-center py-3" style="font-size: 12px;">
                             <i class="fas fa-info-circle me-1"></i> Standard verification documents processed electronically.
                         </div>
@@ -586,19 +651,26 @@
 
 @section('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    function updateChecklistState() {
         const checkboxes = document.querySelectorAll('.doc-checklist-check');
         const approveBtn = document.getElementById('btnApproveFarmerModal');
-
-        function updateChecklistState() {
-            if (!checkboxes.length) return;
-            const allTicked = Array.from(checkboxes).every(cb => cb.checked);
-            if (approveBtn) {
-                approveBtn.disabled = !allTicked;
-            }
+        if (!checkboxes.length) return;
+        const allTicked = Array.from(checkboxes).every(cb => cb.checked);
+        if (approveBtn) {
+            approveBtn.disabled = !allTicked;
         }
+    }
 
+    function selectAllChecklistItems() {
+        const checkboxes = document.querySelectorAll('.doc-checklist-check');
+        checkboxes.forEach(cb => cb.checked = true);
+        updateChecklistState();
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkboxes = document.querySelectorAll('.doc-checklist-check');
         checkboxes.forEach(cb => cb.addEventListener('change', updateChecklistState));
+        updateChecklistState();
     });
 </script>
 @endsection

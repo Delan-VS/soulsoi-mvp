@@ -68,7 +68,7 @@ class DashboardController extends Controller
         }
 
         // Investor Accounts Queue (User Approvals)
-        $allInvestorUsers = User::whereNotNull('investor_status')->latest()->get();
+        $allInvestorUsers = User::whereIn('investor_status', ['pending', 'approved', 'rejected'])->latest()->get();
         $pendingInvestorUsersCount = User::where('investor_status', 'pending')->count();
 
         return view('admin.dashboard', compact(
@@ -175,14 +175,18 @@ class DashboardController extends Controller
                     ]);
                 }
             } elseif ($type === 'farmers') {
-                fputcsv($file, ['ID', 'Name', 'Phone', 'Experience', 'Status']);
+                fputcsv($file, ['ID', 'Full Name', 'Email', 'Phone', 'District', 'State', 'Bank Name', 'Account Number', 'Status']);
                 $farmers = Farmer::with('user')->get();
                 foreach ($farmers as $farmer) {
                     fputcsv($file, [
                         $farmer->id,
-                        $farmer->user ? $farmer->user->name : 'N/A',
-                        $farmer->phone_number,
-                        $farmer->years_of_experience,
+                        $farmer->full_name ?? ($farmer->user ? $farmer->user->name : 'N/A'),
+                        $farmer->user ? $farmer->user->email : 'N/A',
+                        $farmer->user ? $farmer->user->phone : 'N/A',
+                        $farmer->district,
+                        $farmer->state,
+                        $farmer->bank_name,
+                        $farmer->account_number,
                         $farmer->overall_status
                     ]);
                 }

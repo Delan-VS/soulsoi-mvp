@@ -33,8 +33,8 @@ class FarmVerificationController extends Controller
             'farming_timeline' => 'nullable|string', // JSON string from hidden input
             
             // Step 5: Terms
-            'min_investment' => 'required|numeric',
-            'max_investment' => 'required|numeric',
+            'min_investment' => 'required|numeric|min:1|lte:max_investment|lte:funding_target',
+            'max_investment' => 'required|numeric|gte:min_investment|lte:funding_target',
         ]);
 
         $farm = new Farm();
@@ -251,7 +251,7 @@ class FarmVerificationController extends Controller
             'status' => 'completed',
         ]);
 
-        return back()->with('success', 'Settlement submitted successfully. The farm cycle is now completed.');
+        return redirect(route('admin.farms.show', $farm->id) . '?tab=settlement#settlement')->with('success', 'Settlement submitted successfully. The farm cycle is now completed.');
     }
 
     public function disburse(Request $request, Farm $farm)
@@ -262,49 +262,94 @@ class FarmVerificationController extends Controller
             'purpose' => 'nullable|string',
         ]);
 
+        $history = $farm->disbursement_history ?? [];
+
         // If submitted by Admin, directly disburse; if submitted by Farmer, mark as pending_disbursement
         if (auth()->user()->is_admin) {
+            $history[] = [
+                'amount' => (float)$request->amount,
+                'stage' => $request->stage,
+                'purpose' => $request->purpose ?? 'Direct admin disbursement for ' . $request->stage,
+                'priority' => $request->input('priority', 'Standard (3-5 days)'),
+                'status' => 'Disbursed',
+                'date' => now()->format('Y-m-d H:i'),
+                'submitted_by' => auth()->user()->name . ' (Admin)'
+            ];
+
             $farm->increment('funding_raised', $request->amount);
             $farm->update([
                 'pending_disbursement_amount' => 0,
                 'pending_disbursement_stage' => null,
                 'pending_disbursement_purpose' => null,
+                'disbursement_history' => $history,
             ]);
 
-            return back()->with('success', '₹' . number_format($request->amount) . ' disbursed to ' . $farm->name . ' successfully!');
+            return redirect()->to(route('admin.farms.show', $farm->id) . '?tab=fund-request#fund-request')->with('success', '₹' . number_format($request->amount) . ' disbursed to ' . $farm->name . ' successfully!');
         }
+
+        $history[] = [
+            'amount' => (float)$request->amount,
+            'stage' => $request->stage,
+            'purpose' => $request->purpose ?? 'Budgeted disbursement request',
+            'priority' => $request->input('priority', 'Standard (3-5 days)'),
+            'status' => 'Pending Review',
+            'date' => now()->format('Y-m-d H:i'),
+            'submitted_by' => auth()->user()->name
+        ];
 
         $farm->update([
             'pending_disbursement_amount' => $request->amount,
             'pending_disbursement_stage' => $request->stage,
             'pending_disbursement_purpose' => $request->purpose,
+            'disbursement_history' => $history,
         ]);
 
-        return back()->with('success', 'Fund disbursement request of ₹' . number_format($request->amount) . ' submitted for Admin review.');
+        return redirect()->to(route('admin.farms.show', $farm->id) . '?tab=fund-request#fund-request')->with('success', 'Fund disbursement request of ₹' . number_format($request->amount) . ' submitted for Admin review.');
     }
 
     public function approveDisbursement(Farm $farm)
     {
         $amount = $farm->pending_disbursement_amount ?? 0;
+        $history = $farm->disbursement_history ?? [];
         
+        foreach ($history as &$item) {
+            if (isset($item['status']) && $item['status'] === 'Pending Review') {
+                $item['status'] = 'Disbursed';
+                $item['approved_at'] = now()->format('Y-m-d H:i');
+            }
+        }
+        unset($item);
+
         $farm->increment('funding_raised', $amount);
         $farm->update([
             'pending_disbursement_amount' => 0,
             'pending_disbursement_stage' => null,
             'pending_disbursement_purpose' => null,
+            'disbursement_history' => $history,
         ]);
 
-        return back()->with('success', 'Fund request approved! ₹' . number_format($amount) . ' disbursed to ' . $farm->name . '.');
+        return redirect()->to(route('admin.farms.show', $farm->id) . '?tab=fund-request#fund-request')->with('success', 'Fund request approved! ₹' . number_format($amount) . ' disbursed to ' . $farm->name . '.');
     }
 
     public function rejectDisbursement(Farm $farm)
     {
+        $history = $farm->disbursement_history ?? [];
+
+        foreach ($history as &$item) {
+            if (isset($item['status']) && $item['status'] === 'Pending Review') {
+                $item['status'] = 'Rejected';
+                $item['rejected_at'] = now()->format('Y-m-d H:i');
+            }
+        }
+        unset($item);
+
         $farm->update([
             'pending_disbursement_amount' => 0,
             'pending_disbursement_stage' => null,
             'pending_disbursement_purpose' => null,
+            'disbursement_history' => $history,
         ]);
 
-        return back()->with('success', 'Fund disbursement request rejected.');
+        return redirect()->to(route('admin.farms.show', $farm->id) . '?tab=fund-request#fund-request')->with('success', 'Fund disbursement request rejected.');
     }
 }

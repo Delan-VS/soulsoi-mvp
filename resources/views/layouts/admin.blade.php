@@ -633,10 +633,18 @@
                                 </button>
                                 <span class="navbar-brand">@yield('page-title', 'Dashboard')</span>
                             </div>
-                            <div class="d-flex align-items-center gap-3">
+                            <div class="d-flex align-items-center gap-2">
+                                @if(auth()->check() && auth()->user()->is_admin)
+                                    <a href="{{ route('register', ['role' => 'farmer']) }}" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1.5 fw-semibold d-none d-sm-inline-flex align-items-center gap-1" style="font-size: 11px;">
+                                        <i class="fas fa-user-plus"></i> Register as Farmer
+                                    </a>
+                                    <a href="{{ route('register', ['role' => 'investor']) }}" class="btn btn-sm btn-outline-info rounded-pill px-3 py-1.5 fw-semibold d-none d-sm-inline-flex align-items-center gap-1" style="font-size: 11px;">
+                                        <i class="fas fa-handshake"></i> Register as Investor
+                                    </a>
+                                @endif
                                 <button id="fullscreen-toggle"
-                                    class="btn btn-light rounded-circle p-2 me-2 d-none d-md-flex align-items-center justify-content-center"
-                                    style="width: 40px; height: 40px;" title="Toggle Fullscreen">
+                                    class="btn btn-light rounded-circle p-2 me-1 d-none d-md-flex align-items-center justify-content-center"
+                                    style="width: 36px; height: 36px;" title="Toggle Fullscreen">
                                     <i class="fas fa-expand text-muted"></i>
                                 </button>
                                 <span class="fw-semibold text-secondary d-none d-md-inline"

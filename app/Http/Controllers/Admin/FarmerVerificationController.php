@@ -75,4 +75,22 @@ class FarmerVerificationController extends Controller
         ]);
         return back()->with('success', 'Farmer rejected successfully.');
     }
+
+    public function download(Farmer $farmer, $encodedPath)
+    {
+        $path = base64_decode($encodedPath);
+        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+            return \Illuminate\Support\Facades\Storage::disk('public')->response($path);
+        }
+        if (file_exists(storage_path('app/public/' . $path))) {
+            return response()->download(storage_path('app/public/' . $path));
+        }
+        abort(404, 'Document file not found.');
+    }
+
+    public function exportPdf(Farmer $farmer)
+    {
+        $farmer->load(['user', 'farms', 'reviewedBy']);
+        return view('admin.farmers.pdf', compact('farmer'));
+    }
 }

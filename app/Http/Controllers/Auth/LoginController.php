@@ -25,10 +25,17 @@ class LoginController extends Controller
 
         if (Auth::attempt($credentials)) {
             $user = Auth::user();
-            if ($user->investor_status === 'pending' && !$user->farmer && !$user->is_admin) {
+            if ($user->investor_status === 'pending' && !$user->is_admin) {
                 Auth::logout();
                 return back()->withErrors([
                     'email' => 'Your investor account is pending admin approval.',
+                ])->onlyInput('email');
+            }
+
+            if ($user->investor_status === 'rejected' && !$user->is_admin) {
+                Auth::logout();
+                return back()->withErrors([
+                    'email' => 'Your investor account application has been rejected by admin.',
                 ])->onlyInput('email');
             }
 

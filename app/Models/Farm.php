@@ -70,6 +70,7 @@ class Farm extends Model
         'farming_timeline',
         'additional_photos',
         'additional_documents',
+        'disbursement_history',
     ];
 
     protected $casts = [
@@ -78,6 +79,7 @@ class Farm extends Model
         'farming_timeline' => 'array',
         'additional_photos' => 'array',
         'additional_documents' => 'array',
+        'disbursement_history' => 'array',
     ];
 
     public function farmer()

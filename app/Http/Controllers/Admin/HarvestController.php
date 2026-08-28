@@ -12,7 +12,7 @@ class HarvestController extends Controller
     {
         $request->validate([
             'farm_id' => 'required|exists:farms,id',
-            'status' => 'required|string',
+            'status' => 'nullable|string',
             'estimated_yield' => 'nullable|numeric',
             'actual_yield' => 'nullable|numeric',
             'market_value' => 'nullable|numeric',
@@ -23,9 +23,19 @@ class HarvestController extends Controller
         ]);
 
         $data = $request->only([
-            'farm_id', 'status', 'estimated_yield', 'actual_yield',
-            'market_value', 'quality_grade', 'expected_harvest_date', 'actual_harvest_date'
+            'farm_id',
+            'status',
+            'estimated_yield',
+            'actual_yield',
+            'market_value',
+            'quality_grade',
+            'expected_harvest_date',
+            'actual_harvest_date'
         ]);
+
+        if (empty($data['status'])) {
+            $data['status'] = 'harvesting';
+        }
 
         if ($request->hasFile('image')) {
             $data['image_path'] = $request->file('image')->store('harvests', 'public');
@@ -50,8 +60,13 @@ class HarvestController extends Controller
         ]);
 
         $data = $request->only([
-            'status', 'estimated_yield', 'actual_yield',
-            'market_value', 'quality_grade', 'expected_harvest_date', 'actual_harvest_date'
+            'status',
+            'estimated_yield',
+            'actual_yield',
+            'market_value',
+            'quality_grade',
+            'expected_harvest_date',
+            'actual_harvest_date'
         ]);
 
         if ($request->hasFile('image')) {
@@ -62,7 +77,7 @@ class HarvestController extends Controller
 
         return redirect(url()->previous())->with('success', 'Harvest details updated successfully.');
     }
-    
+
     public function destroy(Harvest $harvest)
     {
         $harvest->delete();

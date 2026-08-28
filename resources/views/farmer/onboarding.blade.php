@@ -6,6 +6,8 @@
     <title>Farmer Onboarding - SoulSoil</title>
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
             background-color: #F1EFE8;
@@ -46,6 +48,55 @@
         .status-pending { background-color: #fff3cd; color: #856404; }
         .status-approved { background-color: #d4edda; color: #155724; }
         .status-rejected { background-color: #f8d7da; color: #721c24; }
+
+        /* Document Upload Dropzone Styling (Figma Design) */
+        .upload-card-box {
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 1.25rem 1rem;
+            text-align: center;
+            background-color: #f8fafc;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            position: relative;
+        }
+        .upload-card-box:hover {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+        .upload-icon {
+            font-size: 1.75rem;
+            color: #3b82f6;
+            margin-bottom: 0.5rem;
+        }
+        .upload-label-title {
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #1e293b;
+            margin-bottom: 0.25rem;
+        }
+        .upload-hint-text {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-bottom: 0.75rem;
+        }
+        .btn-upload-file {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.35rem 1rem;
+            border-radius: 8px;
+            background-color: #3b82f6;
+            color: #ffffff;
+            border: none;
+            display: inline-block;
+        }
+        .selected-filename {
+            font-size: 0.75rem;
+            color: #059669;
+            font-weight: 600;
+            margin-top: 0.5rem;
+            word-break: break-all;
+        }
     </style>
 </head>
 <body>
@@ -68,7 +119,7 @@
     <div class="container max-w-3xl">
         <div class="form-card mx-auto" style="max-width: 800px;">
             <h2 class="mb-1 fw-bold" style="color: #2d3748;">Complete Your Profile</h2>
-            <p class="text-muted mb-4">Please provide your details so we can verify your account and allow you to request farm investments.</p>
+            <p class="text-muted mb-4">Please provide your details and verification documents so we can verify your account.</p>
 
             @if(session('success'))
             <div class="alert alert-success fw-bold">
@@ -108,7 +159,7 @@
                 @endif
             </div>
 
-            <form action="{{ route('farmer.onboarding.submit') }}" method="POST">
+            <form action="{{ route('farmer.onboarding.submit') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 
                 <h5 class="fw-bold mt-4 mb-3" style="color: #5cc42c;">Personal Details</h5>
@@ -118,20 +169,20 @@
                         <input type="date" class="form-control" name="dob" value="{{ old('dob', $farmer->dob?->format('Y-m-d')) }}" required>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label class="form-label text-secondary small fw-bold">AADHAR NUMBER</label>
-                        <input type="text" class="form-control" name="aadhar_number" value="{{ old('aadhar_number', $farmer->aadhar_number) }}" required>
+                        <label class="form-label text-secondary small fw-bold">AADHAR NUMBER (12 Digits)</label>
+                        <input type="text" class="form-control" name="aadhar_number" value="{{ old('aadhar_number', $farmer->aadhar_number !== 'N/A' ? $farmer->aadhar_number : '') }}" placeholder="123456789012" maxlength="12" pattern="[0-9]{12}" title="12-digit Aadhaar number" required>
                     </div>
                 </div>
                 
                 <div class="mb-3">
                     <label class="form-label text-secondary small fw-bold">FULL ADDRESS</label>
-                    <textarea class="form-control" name="address" rows="3" required>{{ old('address', $farmer->address) }}</textarea>
+                    <textarea class="form-control" name="address" rows="3" required>{{ old('address', $farmer->address !== 'N/A' ? $farmer->address : '') }}</textarea>
                 </div>
                 
                 <div class="row">
                     <div class="col-md-4 mb-3">
                         <label class="form-label text-secondary small fw-bold">VILLAGE</label>
-                        <input type="text" class="form-control" name="village" value="{{ old('village', $farmer->village) }}" required>
+                        <input type="text" class="form-control" name="village" value="{{ old('village', $farmer->village !== 'N/A' ? $farmer->village : '') }}" required>
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label text-secondary small fw-bold">DISTRICT</label>
@@ -147,7 +198,7 @@
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-secondary small fw-bold">BANK NAME</label>
-                        <input type="text" class="form-control" name="bank_name" value="{{ old('bank_name', $farmer->bank_name) }}" required>
+                        <input type="text" class="form-control" name="bank_name" value="{{ old('bank_name', $farmer->bank_name !== 'N/A' ? $farmer->bank_name : '') }}" required>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-secondary small fw-bold">ACCOUNT HOLDER NAME</label>
@@ -157,18 +208,101 @@
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-secondary small fw-bold">ACCOUNT NUMBER</label>
-                        <input type="text" class="form-control" name="account_number" value="{{ old('account_number', $farmer->account_number) }}" required>
+                        <input type="text" class="form-control" name="account_number" value="{{ old('account_number', $farmer->account_number !== 'N/A' ? $farmer->account_number : '') }}" placeholder="30012345678" maxlength="18" pattern="[0-9]{9,18}" title="9 to 18-digit account number" required>
                     </div>
                     <div class="col-md-6 mb-4">
                         <label class="form-label text-secondary small fw-bold">IFSC CODE</label>
-                        <input type="text" class="form-control" name="ifsc_code" value="{{ old('ifsc_code', $farmer->ifsc_code) }}" required>
+                        <input type="text" class="form-control" name="ifsc_code" value="{{ old('ifsc_code', $farmer->ifsc_code !== 'N/A' ? $farmer->ifsc_code : '') }}" placeholder="SBIN0001234" maxlength="11" pattern="[A-Za-z]{4}0[A-Za-z0-9]{6}" title="11-character IFSC code" required>
                     </div>
                 </div>
                 
+                <!-- Document Uploads Section (Figma Layout) -->
+                <div class="bg-white p-4 rounded-3 border mb-4 shadow-sm">
+                    <h5 class="text-center fw-bold text-dark mb-4" style="color: #5cc42c;">Document Uploads</h5>
+
+                    <!-- 1. Upload Aadhaar Card -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark small mb-2">Upload Aadhaar Card</label>
+                        <div class="row g-3">
+                            <!-- Front Side -->
+                            <div class="col-md-6">
+                                <div class="upload-card-box" onclick="document.getElementById('aadhar_front').click();">
+                                    <div class="upload-icon"><i class="fas fa-upload"></i></div>
+                                    <div class="upload-label-title">Front Side</div>
+                                    <div class="upload-hint-text">Clear photo of your Aadhaar card front</div>
+                                    <span class="btn-upload-file">{{ $farmer->aadhar_front_path ? 'Change File' : 'Upload file' }}</span>
+                                    <input type="file" id="aadhar_front" name="aadhar_front" accept="image/*,.pdf" style="display:none;" onchange="updateFileName(this, 'file_name_aadhar_front')">
+                                    <div id="file_name_aadhar_front" class="selected-filename">
+                                        @if($farmer->aadhar_front_path)
+                                            <i class="fas fa-check-circle me-1"></i> File Uploaded
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Back Side -->
+                            <div class="col-md-6">
+                                <div class="upload-card-box" onclick="document.getElementById('aadhar_back').click();">
+                                    <div class="upload-icon"><i class="fas fa-upload"></i></div>
+                                    <div class="upload-label-title">Back Side</div>
+                                    <div class="upload-hint-text">Clear photo of your Aadhaar card back</div>
+                                    <span class="btn-upload-file">{{ $farmer->aadhar_back_path ? 'Change File' : 'Upload file' }}</span>
+                                    <input type="file" id="aadhar_back" name="aadhar_back" accept="image/*,.pdf" style="display:none;" onchange="updateFileName(this, 'file_name_aadhar_back')">
+                                    <div id="file_name_aadhar_back" class="selected-filename">
+                                        @if($farmer->aadhar_back_path)
+                                            <i class="fas fa-check-circle me-1"></i> File Uploaded
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Upload Pan Card -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark small mb-2">Upload Pan Card</label>
+                        <div class="upload-card-box" onclick="document.getElementById('pan_card').click();">
+                            <div class="upload-icon"><i class="fas fa-upload"></i></div>
+                            <div class="upload-hint-text">Upload clear scan or photo of your original PAN card</div>
+                            <span class="btn-upload-file">{{ $farmer->pan_card_path ? 'Change File' : 'Upload file' }}</span>
+                            <input type="file" id="pan_card" name="pan_card" accept="image/*,.pdf" style="display:none;" onchange="updateFileName(this, 'file_name_pan_card')">
+                            <div id="file_name_pan_card" class="selected-filename">
+                                @if($farmer->pan_card_path)
+                                    <i class="fas fa-check-circle me-1"></i> File Uploaded
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Additional Documents -->
+                    <div class="mb-2">
+                        <label class="form-label fw-bold text-dark small mb-2">Additional Documents</label>
+                        <div class="upload-card-box" onclick="document.getElementById('land_certificate').click();">
+                            <div class="upload-icon"><i class="fas fa-upload"></i></div>
+                            <div class="upload-hint-text">Upload clear scan or photo of your original ID/land document</div>
+                            <span class="btn-upload-file">{{ $farmer->land_certificate_path ? 'Change File' : 'Upload file' }}</span>
+                            <input type="file" id="land_certificate" name="land_certificate" accept="image/*,.pdf" style="display:none;" onchange="updateFileName(this, 'file_name_land_cert')">
+                            <div id="file_name_land_cert" class="selected-filename">
+                                @if($farmer->land_certificate_path)
+                                    <i class="fas fa-check-circle me-1"></i> File Uploaded
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <hr class="mb-4 text-muted">
                 <button type="submit" class="btn btn-primary w-100 py-2">Submit Details for Verification</button>
             </form>
         </div>
     </div>
+
+    <script>
+        function updateFileName(input, targetId) {
+            const displayEl = document.getElementById(targetId);
+            if (input.files && input.files[0]) {
+                displayEl.innerHTML = '<i class="fas fa-check-circle me-1"></i> ' + input.files[0].name;
+            }
+        }
+    </script>
 </body>
 </html>

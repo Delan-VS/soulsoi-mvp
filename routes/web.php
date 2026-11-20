@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\SaleController;
 use App\Http\Controllers\InvestorController;
+use App\Http\Controllers\PaymentController;
 
 Route::get('/', function () {
     return redirect()->route('admin.dashboard');
@@ -23,6 +24,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/investor/farms/{farm}/invest', [InvestorController::class, 'invest'])->name('investor.farms.invest');
     Route::get('/investor/portfolio/{farm}', [InvestorController::class, 'trackInvestment'])->name('investor.portfolio.track');
     Route::get('/export-report', [DashboardController::class, 'exportReport'])->name('reports.export');
+
+    // Razorpay payment integration
+    Route::post('/payment/create-order', [PaymentController::class, 'createOrder'])->name('payment.create_order');
+    Route::post('/payment/verify', [PaymentController::class, 'verifyPayment'])->name('payment.verify');
 });
 
 // Farmer routes (Protected)
@@ -34,8 +39,11 @@ Route::middleware(['auth'])->group(function () {
 // Authentication routes
 Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
 Route::post('/register', [RegisterController::class, 'register'])->name('register.submit');
+Route::post('/register/upload-document', [RegisterController::class, 'uploadDocument'])->name('register.upload.document');
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'authenticate'])->name('authenticate');
+Route::post('/reset-password', [LoginController::class, 'resetPassword'])->name('password.reset');
+Route::post('/change-password', [LoginController::class, 'changePassword'])->name('password.change');
 Route::match(['get', 'post'], '/logout', [LoginController::class, 'logout'])->name('logout');
 
 // Admin panel routes (protected by auth middleware)
@@ -54,6 +62,7 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 
     Route::get('/farms', [FarmVerificationController::class, 'index'])->name('admin.farms.index');
     Route::get('/farms/create', [FarmVerificationController::class, 'create'])->name('admin.farms.create');
+    Route::post('/farms/preview-financials', [FarmVerificationController::class, 'previewFinancials'])->name('admin.farms.preview_financials');
     Route::post('/farms', [FarmVerificationController::class, 'store'])->name('admin.farms.store');
     Route::get('/farms/{farm}/edit', [FarmVerificationController::class, 'edit'])->name('admin.farms.edit');
     Route::put('/farms/{farm}', [FarmVerificationController::class, 'update'])->name('admin.farms.update');

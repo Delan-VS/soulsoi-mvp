@@ -27,7 +27,7 @@
                                         style="width: 8px; height: 8px;"></span>
                                     <span class="fw-bold text-uppercase">System Operational</span>
                                 </div>
-                                <h3 class="fw-bold mb-2 text-white">Welcome back, Admin 👋</h3>
+                                <h3 class="fw-bold mb-2 text-white">Welcome back, Admin </h3>
                                 <p class="text-white-50 mb-0" style="font-size: 12px; max-width: 600px;">
                                     Here is what's happening across SoulSoil today. You have <strong
                                         class="text-warning">{{ $pendingFarmers }} farmer applications</strong> and <strong
@@ -903,101 +903,666 @@
 
                 <!-- 1. Dashboard Tab -->
                 <div class="farmer-tab-content tab-pane fade show active" id="tab-dashboard" role="tabpanel">
-                    <!-- Hero Welcome Header -->
-                    <div class="card border-0 shadow-sm rounded-4 mb-4"
-                        style="background: linear-gradient(135deg, #065f46 0%, #047857 100%);">
-                        <div class="card-body p-4 p-lg-5 text-white">
-                            <div class="row align-items-center">
-                                <div class="col-lg-8">
-                                    <span
-                                        class="badge bg-white bg-opacity-20 text-white px-3 py-1.5 rounded-pill fw-semibold mb-3"
-                                        style="font-size: 11px;">
-                                        <i class="fas fa-check-circle me-1"></i> Verified Farmer Profile
-                                    </span>
-                                    <h3 class="fw-bold mb-2 fs-2">Welcome back, {{ auth()->user()->name }}!</h3>
-                                    <p class="text-white-50 mb-0" style="font-size: 13px;">Manage your land plots, post crop
-                                        updates
-                                        for investors, and log sale proofs from your unified farmer dashboard.</p>
-                                </div>
-                                <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
-                                    <button type="button" onclick="document.querySelector('[data-tab=\'add-farm\']').click();"
-                                        class="btn btn-light rounded-pill px-4 py-2.5 fw-bold text-success shadow-sm"
-                                        style="font-size: 12px;">
-                                        <i class="fas fa-plus-circle me-1.5"></i> Register New Farm
-                                    </button>
-                                </div>
-                            </div>
+                    @php
+                        $farmer = auth()->user()->farmer;
+                        $isApprovedFarmer = $farmer && $farmer->overall_status === 'approved';
+                    @endphp
+                    @if(session('success'))
+                        <div class="alert alert-success alert-dismissible fade show border-0 rounded-4 shadow-sm p-3 mb-4 d-flex align-items-center"
+                            role="alert">
+                            <i class="fas fa-check-circle me-2 fs-5 text-success"></i>
+                            <div class="flex-grow-1 fw-semibold">{{ session('success') }}</div>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
-                    </div>
-
-                    <!-- Stats Row -->
-                    <div class="row g-3 mb-4">
-                        <div class="col-sm-6 col-xl-3">
-                            <div class="card border-0 shadow-sm rounded-4 h-100">
-                                <div class="card-body p-4">
-                                    <div class="d-flex align-items-center justify-content-between mb-3">
-                                        <div class="bg-success bg-opacity-10 text-success rounded-3 p-3">
-                                            <i class="fas fa-seedling fs-4"></i>
-                                        </div>
-                                        <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2.5 py-1"
-                                            style="font-size: 10px;">Active Plots</span>
-                                    </div>
-                                    <h3 class="fw-bold text-dark mb-1 fs-3">{{ count($myFarms ?? []) }}</h3>
-                                    <div class="text-muted" style="font-size: 11px;">Total Registered Farms</div>
-                                </div>
-                            </div>
+                    @endif
+                    @if(session('error'))
+                        <div class="alert alert-danger alert-dismissible fade show border-0 rounded-4 shadow-sm p-3 mb-4 d-flex align-items-center"
+                            role="alert">
+                            <i class="fas fa-exclamation-circle me-2 fs-5 text-danger"></i>
+                            <div class="flex-grow-1 fw-semibold">{{ session('error') }}</div>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
+                    @endif
 
-                        <div class="col-sm-6 col-xl-3">
-                            <div class="card border-0 shadow-sm rounded-4 h-100">
-                                <div class="card-body p-4">
-                                    <div class="d-flex align-items-center justify-content-between mb-3">
-                                        <div class="bg-primary bg-opacity-10 text-primary rounded-3 p-3">
-                                            <i class="fas fa-hand-holding-usd fs-4"></i>
-                                        </div>
-                                        <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2.5 py-1"
-                                            style="font-size: 10px;">Capital</span>
+                    @if(!$isApprovedFarmer)
+                        <!-- Unapproved / Pending Farmer Hero Banner -->
+                        <div class="card border-0 shadow-sm rounded-4 mb-4"
+                            style="background: {{ $farmer?->overall_status === 'rejected' ? 'linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%)' : 'linear-gradient(135deg, #1e293b 0%, #334155 100%)' }};">
+                            <div class="card-body p-4 p-lg-5 text-white">
+                                <div class="row align-items-center">
+                                    <div class="col-lg-8">
+                                        @if($farmer?->overall_status === 'rejected')
+                                            <span
+                                                class="badge bg-danger bg-opacity-30 text-white border border-danger border-opacity-50 px-3 py-1.5 rounded-pill fw-semibold mb-3"
+                                                style="font-size: 11px;">
+                                                <i class="fas fa-times-circle me-1"></i> Application Rejected
+                                            </span>
+                                            <h3 class="fw-bold mb-2 fs-2 text-white">Account Verification Not Approved</h3>
+                                            <p class="text-white-50 mb-0" style="font-size: 13px;">
+                                                Your account was not approved. Please review the reason below and update your details to gain full access.
+                                                @if($farmer?->admin_notes)
+                                                    <br><strong class="text-warning mt-1 d-inline-block"><i class="fas fa-comment-dots me-1"></i> Rejection Reason:
+                                                        {{ $farmer->admin_notes }}</strong>
+                                                @endif
+                                            </p>
+                                        @else
+                                            <span
+                                                class="badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-30 px-3 py-1.5 rounded-pill fw-semibold mb-3"
+                                                style="font-size: 11px;">
+                                                <i class="fas fa-clock me-1"></i> Verification Pending
+                                            </span>
+                                            <h3 class="fw-bold mb-2 fs-2 text-white">Welcome, {{ auth()->user()->name }}! </h3>
+                                            <p class="text-white-50 mb-0" style="font-size: 13px;">
+                                                Your farmer profile and uploaded documents (Aadhaar, Bank Details, and Land
+                                                Verification) are currently under review by our Admin team.
+                                            </p>
+                                        @endif
                                     </div>
-                                    <h3 class="fw-bold text-dark mb-1 fs-3">
-                                        ₹{{ number_format($myFarms->sum('funding_raised') ?? 0) }}</h3>
-                                    <div class="text-muted" style="font-size: 11px;">Total Funding Raised</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-sm-6 col-xl-3">
-                            <div class="card border-0 shadow-sm rounded-4 h-100">
-                                <div class="card-body p-4">
-                                    <div class="d-flex align-items-center justify-content-between mb-3">
-                                        <div class="bg-info bg-opacity-10 text-info rounded-3 p-3">
-                                            <i class="fas fa-ruler-combined fs-4"></i>
+                                    <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
+                                        <div class="d-inline-flex align-items-center gap-2 px-3 py-2 rounded-pill"
+                                            style="font-size: 12px; background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.25); color: #ffffff;">
+                                            <i class="fas {{ $farmer?->overall_status === 'rejected' ? 'fa-exclamation-circle text-danger' : 'fa-hourglass-half text-warning' }}"></i>
+                                            <span class="fw-semibold text-white">{{ $farmer?->overall_status === 'rejected' ? 'Action Required' : 'Approval Pending' }}</span>
                                         </div>
-                                        <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-2.5 py-1"
-                                            style="font-size: 10px;">Acreage</span>
                                     </div>
-                                    <h3 class="fw-bold text-dark mb-1 fs-3">{{ $myFarms->sum('total_acres') ?? 0 }}</h3>
-                                    <div class="text-muted" style="font-size: 11px;">Total Acres Cultivated</div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="col-sm-6 col-xl-3">
-                            <div class="card border-0 shadow-sm rounded-4 h-100">
+                        <!-- Persistent Red Line / Status Alert (Does NOT disappear) -->
+                        @if($farmer?->overall_status === 'rejected')
+                            <div class="card border-0 shadow-sm rounded-4 mb-4"
+                                style="border-left: 6px solid #dc2626 !important; background: #fff5f5;">
                                 <div class="card-body p-4">
-                                    <div class="d-flex align-items-center justify-content-between mb-3">
-                                        <div class="bg-warning bg-opacity-10 text-warning rounded-3 p-3">
-                                            <i class="fas fa-clock fs-4"></i>
+                                    <div class="d-flex align-items-start gap-3">
+                                        <div class="p-3 rounded-circle bg-danger bg-opacity-15 text-danger flex-shrink-0 mt-1">
+                                            <i class="fas fa-exclamation-triangle fa-2x"></i>
                                         </div>
-                                        <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-2.5 py-1"
-                                            style="font-size: 10px;">Status</span>
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-1">
+                                                <h5 class="fw-bold text-danger mb-0">
+                                                    <i class="fas fa-times-circle me-1.5"></i> Application Verification Rejected
+                                                </h5>
+                                                <span class="badge bg-danger text-white px-3 py-1.5 rounded-pill fw-semibold"
+                                                    style="font-size: 11px;">
+                                                    Action Required
+                                                </span>
+                                            </div>
+                                            <p class="text-secondary small mb-3" style="line-height: 1.6;">
+                                                Your account verification was rejected. Please review the reason below, update your details, and resubmit; you will gain full access once approved.
+                                            </p>
+                                            <!-- Prominent Rejection Reason Box -->
+                                            <div class="p-3 rounded-3 bg-white border border-danger border-opacity-30 mb-3 shadow-xs">
+                                                <div class="small fw-bold text-danger mb-1">
+                                                    <i class="fas fa-comment-dots me-1"></i> Rejection Reason:
+                                                </div>
+                                                <div class="text-dark fw-semibold" style="font-size: 13.5px;">
+                                                    {{ $farmer->admin_notes ?: 'Documents or bank details did not meet the verification requirements. Please review your information below, make necessary corrections, and re-submit for approval.' }}
+                                                </div>
+                                            </div>
+                                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                                <div class="text-muted small">
+                                                    <i class="fas fa-info-circle text-primary me-1"></i>
+                                                    You will gain full access once your updated details are approved.
+                                                </div>
+                                                <button type="button" onclick="openFarmerEditForm()"
+                                                    class="btn btn-danger btn-sm rounded-pill px-3 fw-bold shadow-sm"
+                                                    style="font-size: 11.5px;">
+                                                    <i class="fas fa-edit me-1"></i> Edit Application Details
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <h3 class="fw-bold text-dark mb-1 fs-3">{{ $myFarms->where('status', 'pending')->count() }}
-                                    </h3>
-                                    <div class="text-muted" style="font-size: 11px;">Plots Pending Approval</div>
+                                </div>
+                            </div>
+                        @else
+                            <div class="card border-0 shadow-sm rounded-4 mb-4"
+                                style="border-left: 6px solid #f59e0b !important; background: #fffbeb;">
+                                <div class="card-body p-4">
+                                    <div class="d-flex align-items-start gap-3">
+                                        <div class="p-3 rounded-circle bg-warning bg-opacity-20 text-warning flex-shrink-0 mt-1">
+                                            <i class="fas fa-shield-alt fa-2x"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-1">
+                                                <h5 class="fw-bold text-dark mb-0">
+                                                    <i class="fas fa-clock text-warning me-1.5"></i> Application Under Review
+                                                </h5>
+                                                <span class="badge bg-warning text-dark px-3 py-1.5 rounded-pill fw-semibold"
+                                                    style="font-size: 11px;">
+                                                    Pending Approval
+                                                </span>
+                                            </div>
+                                            <p class="text-secondary small mb-2" style="line-height: 1.6;">
+                                                Your account is pending admin verification; you will gain full access once approved.
+                                            </p>
+                                            @if($farmer?->admin_notes)
+                                                <div class="p-3 mt-3 rounded-3 bg-white border border-warning border-opacity-40 shadow-xs">
+                                                    <div class="small fw-bold text-dark mb-1">
+                                                        <i class="fas fa-history text-warning me-1"></i> Previous Rejection Remarks (Being Addressed):
+                                                    </div>
+                                                    <div class="text-secondary small">
+                                                        {{ $farmer->admin_notes }}
+                                                    </div>
+                                                </div>
+                                            @endif
+                                            <div class="text-muted small mt-2">
+                                                <i class="fas fa-info-circle text-primary me-1"></i> You can track your verification progress in the timeline below or update your submitted details anytime.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                        <!-- 2. Verification Tracking Timeline Card -->
+                        <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
+                            <div
+                                class="card-header bg-transparent border-0 pt-4 px-4 pb-0 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                <div>
+                                    <h5 class="fw-bold text-dark mb-1"><i class="fas fa-route text-success me-2"></i> Verification
+                                        Tracking Timeline</h5>
+                                    <p class="text-muted small mb-0">Live status of your farmer application through each
+                                        verification stage</p>
+                                </div>
+                                <span
+                                    class="badge {{ $farmer?->overall_status === 'rejected' ? 'bg-danger text-white' : 'bg-warning text-dark' }} rounded-pill px-3 py-1.5 fw-semibold"
+                                    style="font-size: 11px;">
+                                    {{ $farmer?->overall_status === 'rejected' ? 'Application Rejected' : 'Under Review' }}
+                                </span>
+                            </div>
+                            <div class="card-body p-4 p-lg-5">
+                                <div class="position-relative py-2">
+                                    <!-- Connected Track Line -->
+                                    <div class="timeline-track-bar">
+                                        <div class="timeline-track-progress {{ $farmer?->overall_status === 'rejected' ? 'rejected' : '' }}"
+                                            style="width: {{ $farmer?->overall_status === 'rejected' ? '66%' : '45%' }};"></div>
+                                    </div>
+
+                                    <div class="row text-center position-relative g-2" style="z-index: 2;">
+                                        <!-- Step 1: Application Submitted -->
+                                        <div class="col-3">
+                                            <div class="d-flex flex-column align-items-center">
+                                                <div class="timeline-step-icon done">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <h6 class="fw-bold text-dark mb-0 mt-2" style="font-size: 12.5px;">Submitted</h6>
+                                                <div class="text-muted" style="font-size: 11px;">Application Logged</div>
+                                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill mt-1"
+                                                    style="font-size: 9.5px;">Completed</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Step 2: Documents & ID Verification -->
+                                        @php
+                                            $docDone = $farmer?->document_verification === 'approved';
+                                            $docRejected = $farmer?->document_verification === 'rejected' || ($farmer?->overall_status === 'rejected' && !$docDone);
+                                        @endphp
+                                        <div class="col-3">
+                                            <div class="d-flex flex-column align-items-center">
+                                                <div
+                                                    class="timeline-step-icon {{ $docDone ? 'done' : ($docRejected ? 'rejected' : 'active') }}">
+                                                    <i
+                                                        class="fas {{ $docDone ? 'fa-check' : ($docRejected ? 'fa-times' : 'fa-id-card') }}"></i>
+                                                </div>
+                                                <h6 class="fw-bold text-dark mb-0 mt-2" style="font-size: 12.5px;">Documents & ID
+                                                </h6>
+                                                <div class="text-muted" style="font-size: 11px;">Aadhaar & Land Docs</div>
+                                                <span
+                                                    class="badge {{ $docDone ? 'bg-success bg-opacity-10 text-success' : ($docRejected ? 'bg-danger bg-opacity-15 text-danger' : 'bg-primary bg-opacity-10 text-primary') }} rounded-pill mt-1"
+                                                    style="font-size: 9.5px;">
+                                                    {{ $docDone ? 'Verified' : ($docRejected ? 'Action Required' : 'In Review') }}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Step 3: Bank Details Verification -->
+                                        @php
+                                            $bankDone = $farmer?->bank_verification === 'approved';
+                                            $bankRejected = $farmer?->bank_verification === 'rejected';
+                                            $bankActive = !$docRejected && !$bankDone;
+                                        @endphp
+                                        <div class="col-3">
+                                            <div class="d-flex flex-column align-items-center">
+                                                <div
+                                                    class="timeline-step-icon {{ $bankDone ? 'done' : ($bankRejected ? 'rejected' : ($bankActive ? 'active' : 'pending')) }}">
+                                                    <i
+                                                        class="fas {{ $bankDone ? 'fa-check' : ($bankRejected ? 'fa-times' : 'fa-university') }}"></i>
+                                                </div>
+                                                <h6 class="fw-bold text-dark mb-0 mt-2" style="font-size: 12.5px;">Bank Details</h6>
+                                                <div class="text-muted" style="font-size: 11px;">IFSC & Account</div>
+                                                <span
+                                                    class="badge {{ $bankDone ? 'bg-success bg-opacity-10 text-success' : ($bankRejected ? 'bg-danger bg-opacity-15 text-danger' : ($bankActive ? 'bg-warning bg-opacity-15 text-warning' : 'bg-secondary bg-opacity-10 text-muted')) }} rounded-pill mt-1"
+                                                    style="font-size: 9.5px;">
+                                                    {{ $bankDone ? 'Verified' : ($bankRejected ? 'Failed' : ($bankActive ? 'In Review' : 'Pending')) }}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Step 4: Final Admin Approval -->
+                                        @php
+                                            $adminDone = $farmer?->overall_status === 'approved';
+                                            $adminRejected = $farmer?->overall_status === 'rejected';
+                                        @endphp
+                                        <div class="col-3">
+                                            <div class="d-flex flex-column align-items-center">
+                                                <div
+                                                    class="timeline-step-icon {{ $adminDone ? 'done' : ($adminRejected ? 'rejected' : 'pending') }}">
+                                                    <i
+                                                        class="fas {{ $adminDone ? 'fa-check-double' : ($adminRejected ? 'fa-times' : 'fa-user-shield') }}"></i>
+                                                </div>
+                                                <h6 class="fw-bold text-dark mb-0 mt-2" style="font-size: 12.5px;">Account
+                                                    Activation</h6>
+                                                <div class="text-muted" style="font-size: 11px;">Dashboard Unlock</div>
+                                                <span
+                                                    class="badge {{ $adminDone ? 'bg-success bg-opacity-10 text-success' : ($adminRejected ? 'bg-danger bg-opacity-15 text-danger' : 'bg-secondary bg-opacity-10 text-muted') }} rounded-pill mt-1"
+                                                    style="font-size: 9.5px;">
+                                                    {{ $adminDone ? 'Activated' : ($adminRejected ? 'Rejected' : 'Awaiting Approval') }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+
+                            <!-- 3. Under the Timeline: Only Edit Button Option Displays -->
+                            <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white" id="unapproved-edit-card">
+                                <div class="card-body p-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="p-3 rounded-circle bg-success bg-opacity-10 text-success flex-shrink-0">
+                                            <i class="fas fa-user-edit fs-4"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="fw-bold text-dark mb-1">Update Application Details</h5>
+                                            <p class="text-muted small mb-0">Modify personal information, bank account details, or
+                                                re-upload verification documents.</p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <button type="button"
+                                            class="btn btn-success rounded-pill px-4 py-2.5 fw-bold shadow-sm d-inline-flex align-items-center gap-2"
+                                            data-bs-toggle="collapse" data-bs-target="#farmerEditFormCollapse"
+                                            aria-expanded="{{ $errors->any() ? 'true' : 'false' }}"
+                                            aria-controls="farmerEditFormCollapse" id="toggleFarmerEditBtn">
+                                            <i class="fas {{ $errors->any() ? 'fa-times' : 'fa-edit' }}" id="toggleIcon"></i>
+                                            <span
+                                                id="toggleText">{{ $errors->any() ? 'Close Edit Form' : 'Edit Application' }}</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Collapsible Edit Form: displays only when the Edit button is clicked -->
+                                <div class="collapse {{ $errors->any() ? 'show' : '' }}" id="farmerEditFormCollapse">
+                                    <div class="card-body border-top p-4 p-lg-5">
+                                        <form action="{{ route('farmer.onboarding.submit') }}" method="POST"
+                                            enctype="multipart/form-data">
+                                            @csrf
+
+                                            <h6 class="fw-bold text-success mb-3">
+                                                <i class="fas fa-user me-1.5"></i> 1. Personal & Contact Information
+                                            </h6>
+                                            <div class="row g-3 mb-3">
+                                                <div class="col-md-6">
+                                                    <label for="edit_full_name" class="form-label text-secondary small fw-bold">FULL
+                                                        NAME <span class="text-danger">*</span></label>
+                                                    <input type="text" class="form-control form-control-sm" id="edit_full_name"
+                                                        name="full_name"
+                                                        value="{{ old('full_name', $farmer->full_name ?? auth()->user()->name) }}"
+                                                        required>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label text-secondary small fw-bold">PHONE NUMBER</label>
+                                                    <input type="text" class="form-control form-control-sm"
+                                                        value="{{ auth()->user()->phone }}" readonly
+                                                        style="background-color: #f1f5f9; color: #475569;">
+                                                </div>
+                                            </div>
+
+                                            <div class="row g-3 mb-3">
+                                                <!-- State first in ash color -->
+                                                <div class="col-md-4">
+                                                    <label for="edit_state" class="form-label text-secondary small fw-bold">STATE
+                                                        <span class="text-danger">*</span></label>
+                                                    <input type="text" class="form-control form-control-sm" id="edit_state"
+                                                        name="state" value="{{ old('state', $farmer->state ?? 'Kerala') }}" readonly
+                                                        style="background-color: #f1f5f9; color: #475569; border-color: #cbd5e1; cursor: default; font-weight: 500;"
+                                                        required>
+                                                </div>
+                                                <!-- District second -->
+                                                <div class="col-md-4">
+                                                    <label for="edit_district"
+                                                        class="form-label text-secondary small fw-bold">DISTRICT <span
+                                                            class="text-danger">*</span></label>
+                                                    <select class="form-select form-control-sm" id="edit_district" name="district"
+                                                        required>
+                                                        @foreach(['Alappuzha', 'Ernakulam', 'Idukki', 'Kannur', 'Kasaragod', 'Kollam', 'Kottayam', 'Kozhikode', 'Malappuram', 'Palakkad', 'Pathanamthitta', 'Thiruvananthapuram', 'Thrissur', 'Wayanad', 'Other'] as $dist)
+                                                            <option value="{{ $dist }}" {{ old('district', $farmer->district) == $dist ? 'selected' : '' }}>{{ $dist }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                                <!-- Pincode third -->
+                                                <div class="col-md-4">
+                                                    <label for="edit_pincode"
+                                                        class="form-label text-secondary small fw-bold">PINCODE <span
+                                                            class="text-danger">*</span></label>
+                                                    <input type="text" class="form-control form-control-sm" id="edit_pincode"
+                                                        name="pincode" value="{{ old('pincode', $farmer->pincode) }}" maxlength="6"
+                                                        pattern="[0-9]{6}" title="6-digit PIN code" required>
+                                                </div>
+                                            </div>
+
+                                            <div class="row g-3 mb-3">
+                                                <div class="col-md-8">
+                                                    <label for="edit_address" class="form-label text-secondary small fw-bold">FARM /
+                                                        RESIDENTIAL ADDRESS <span class="text-danger">*</span></label>
+                                                    <input type="text" class="form-control form-control-sm" id="edit_address"
+                                                        name="address" value="{{ old('address', $farmer->address) }}" required>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label for="edit_village"
+                                                        class="form-label text-secondary small fw-bold">VILLAGE / LOCAL AREA</label>
+                                                    <input type="text" class="form-control form-control-sm" id="edit_village"
+                                                        name="village"
+                                                        value="{{ old('village', $farmer->village !== 'N/A' ? $farmer->village : '') }}">
+                                                </div>
+                                            </div>
+
+                                            <div class="mb-4">
+                                                <label for="edit_aadhar_number"
+                                                    class="form-label text-secondary small fw-bold">AADHAAR NUMBER (12 Digits) <span
+                                                        class="text-danger">*</span></label>
+                                                <input type="text" class="form-control form-control-sm" id="edit_aadhar_number"
+                                                    name="aadhar_number"
+                                                    value="{{ old('aadhar_number', $farmer->aadhar_number !== 'N/A' ? $farmer->aadhar_number : '') }}"
+                                                    maxlength="12" pattern="[0-9]{12}" title="12-digit Aadhaar number" required>
+                                            </div>
+
+                                            <hr class="my-4 text-muted">
+
+                                            <h6 class="fw-bold text-success mb-3">
+                                                <i class="fas fa-university me-1.5"></i> 2. Bank Account Details
+                                            </h6>
+                                            <div class="row g-3 mb-3">
+                                                <div class="col-md-6">
+                                                    <label for="edit_bank_name" class="form-label text-secondary small fw-bold">BANK
+                                                        NAME <span class="text-danger">*</span></label>
+                                                    <input type="text" class="form-control form-control-sm" id="edit_bank_name"
+                                                        name="bank_name"
+                                                        value="{{ old('bank_name', $farmer->bank_name !== 'N/A' ? $farmer->bank_name : '') }}"
+                                                        required>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="edit_ifsc_code" class="form-label text-secondary small fw-bold">IFSC
+                                                        CODE <span class="text-danger">*</span></label>
+                                                    <input type="text" class="form-control form-control-sm" id="edit_ifsc_code"
+                                                        name="ifsc_code"
+                                                        value="{{ old('ifsc_code', $farmer->ifsc_code !== 'N/A' ? $farmer->ifsc_code : '') }}"
+                                                        maxlength="11" pattern="[A-Za-z]{4}0[A-Za-z0-9]{6}"
+                                                        title="11-character IFSC code" required style="text-transform: uppercase;"
+                                                        oninput="this.value = this.value.toUpperCase()">
+                                                </div>
+                                            </div>
+
+                                            <div class="row g-3 mb-4">
+                                                <div class="col-md-6">
+                                                    <label for="edit_account_number"
+                                                        class="form-label text-secondary small fw-bold">ACCOUNT NUMBER <span
+                                                            class="text-danger">*</span></label>
+                                                    <input type="text" class="form-control form-control-sm" id="edit_account_number"
+                                                        name="account_number"
+                                                        value="{{ old('account_number', $farmer->account_number !== 'N/A' ? $farmer->account_number : '') }}"
+                                                        maxlength="18" pattern="[0-9]{9,18}" required>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="edit_account_holder_name"
+                                                        class="form-label text-secondary small fw-bold">ACCOUNT HOLDER NAME <span
+                                                            class="text-danger">*</span></label>
+                                                    <input type="text" class="form-control form-control-sm"
+                                                        id="edit_account_holder_name" name="account_holder_name"
+                                                        value="{{ old('account_holder_name', $farmer->account_holder_name ?? auth()->user()->name) }}"
+                                                        required>
+                                                </div>
+                                            </div>
+
+                                            <hr class="my-4 text-muted">
+
+                                            <h6 class="fw-bold text-success mb-2">
+                                                <i class="fas fa-file-upload me-1.5"></i> 3. Verification Documents (Max 1MB per
+                                                file)
+                                            </h6>
+                                            <p class="text-muted small mb-3">Upload clear scans or photos (JPG, PNG, PDF up to 1MB).
+                                                If already uploaded, choose a new file only if you wish to replace it.</p>
+
+                                            <div class="row g-3 mb-4">
+                                                <!-- Aadhaar Front -->
+                                                <div class="col-md-6">
+                                                    <div class="p-3 border rounded-3 bg-light">
+                                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                                            <span class="fw-bold text-dark small">Aadhaar Front Side <span
+                                                                    class="text-danger">*</span></span>
+                                                            <span class="badge bg-secondary-subtle text-secondary"
+                                                                style="font-size: 10px;">Max 1MB</span>
+                                                        </div>
+                                                        <input type="file" class="form-control form-control-sm" name="aadhar_front"
+                                                            accept="image/*,.pdf">
+                                                        @if($farmer->aadhar_front_path)
+                                                            <div class="text-success small mt-1.5" style="font-size: 11px;">
+                                                                <i class="fas fa-check-circle me-1"></i> Currently Uploaded:
+                                                                <a href="{{ asset('storage/' . $farmer->aadhar_front_path) }}"
+                                                                    target="_blank" class="text-success fw-semibold">View File</a>
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                                <!-- Aadhaar Back -->
+                                                <div class="col-md-6">
+                                                    <div class="p-3 border rounded-3 bg-light">
+                                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                                            <span class="fw-bold text-dark small">Aadhaar Back Side <span
+                                                                    class="text-danger">*</span></span>
+                                                            <span class="badge bg-secondary-subtle text-secondary"
+                                                                style="font-size: 10px;">Max 1MB</span>
+                                                        </div>
+                                                        <input type="file" class="form-control form-control-sm" name="aadhar_back"
+                                                            accept="image/*,.pdf">
+                                                        @if($farmer->aadhar_back_path)
+                                                            <div class="text-success small mt-1.5" style="font-size: 11px;">
+                                                                <i class="fas fa-check-circle me-1"></i> Currently Uploaded:
+                                                                <a href="{{ asset('storage/' . $farmer->aadhar_back_path) }}"
+                                                                    target="_blank" class="text-success fw-semibold">View File</a>
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                                <!-- PAN Card -->
+                                                <div class="col-md-6">
+                                                    <div class="p-3 border rounded-3 bg-light">
+                                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                                            <span class="fw-bold text-dark small">PAN Card</span>
+                                                            <span class="badge bg-secondary-subtle text-secondary"
+                                                                style="font-size: 10px;">Max 1MB</span>
+                                                        </div>
+                                                        <input type="file" class="form-control form-control-sm" name="pan_card"
+                                                            accept="image/*,.pdf">
+                                                        @if($farmer->pan_card_path)
+                                                            <div class="text-success small mt-1.5" style="font-size: 11px;">
+                                                                <i class="fas fa-check-circle me-1"></i> Currently Uploaded:
+                                                                <a href="{{ asset('storage/' . $farmer->pan_card_path) }}"
+                                                                    target="_blank" class="text-success fw-semibold">View File</a>
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                                <!-- Land Certificate -->
+                                                <div class="col-md-6">
+                                                    <div class="p-3 border rounded-3 bg-light">
+                                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                                            <span class="fw-bold text-dark small">Land Certificate / ID
+                                                                Document</span>
+                                                            <span class="badge bg-secondary-subtle text-secondary"
+                                                                style="font-size: 10px;">Max 1MB</span>
+                                                        </div>
+                                                        <input type="file" class="form-control form-control-sm"
+                                                            name="land_certificate" accept="image/*,.pdf">
+                                                        @if($farmer->land_certificate_path)
+                                                            <div class="text-success small mt-1.5" style="font-size: 11px;">
+                                                                <i class="fas fa-check-circle me-1"></i> Currently Uploaded:
+                                                                <a href="{{ asset('storage/' . $farmer->land_certificate_path) }}"
+                                                                    target="_blank" class="text-success fw-semibold">View File</a>
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div
+                                                class="pt-3 border-top d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                                <div class="text-muted small">
+                                                    <i class="fas fa-shield-alt text-success me-1"></i> Saving changes will set your
+                                                    application status to <strong>Pending</strong> for fresh Admin review.
+                                                </div>
+                                                <button type="submit"
+                                                    class="btn btn-success rounded-pill px-4 py-2.5 fw-bold shadow-sm">
+                                                    <i class="fas fa-paper-plane me-2"></i> Save Changes & Resubmit for Approval
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function () {
+                                    const toggleBtn = document.getElementById('toggleFarmerEditBtn');
+                                    const collapseEl = document.getElementById('farmerEditFormCollapse');
+                                    const toggleText = document.getElementById('toggleText');
+                                    const toggleIcon = document.getElementById('toggleIcon');
+
+                                    if (toggleBtn && collapseEl) {
+                                        collapseEl.addEventListener('show.bs.collapse', function () {
+                                            if (toggleText) toggleText.textContent = 'Close Edit Form';
+                                            if (toggleIcon) toggleIcon.className = 'fas fa-times';
+                                            toggleBtn.classList.remove('btn-success');
+                                            toggleBtn.classList.add('btn-outline-secondary');
+                                        });
+                                        collapseEl.addEventListener('hide.bs.collapse', function () {
+                                            if (toggleText) toggleText.textContent = 'Edit Application';
+                                            if (toggleIcon) toggleIcon.className = 'fas fa-edit';
+                                            toggleBtn.classList.remove('btn-outline-secondary');
+                                            toggleBtn.classList.add('btn-success');
+                                        });
+                                    }
+                                });
+                                function openFarmerEditForm() {
+                                    const collapseEl = document.getElementById('farmerEditFormCollapse');
+                                    if (collapseEl && !collapseEl.classList.contains('show')) {
+                                        const toggleBtn = document.getElementById('toggleFarmerEditBtn');
+                                        if (toggleBtn) toggleBtn.click();
+                                    }
+                                    const editCard = document.getElementById('unapproved-edit-card');
+                                    if (editCard) editCard.scrollIntoView({ behavior: 'smooth' });
+                                }
+                            </script>
+                    @else
+                            <!-- Hero Welcome Header -->
+                            <div class="card border-0 shadow-sm rounded-4 mb-4"
+                                style="background: linear-gradient(135deg, #065f46 0%, #047857 100%);">
+                                <div class="card-body p-4 p-lg-5 text-white">
+                                    <div class="row align-items-center">
+                                        <div class="col-lg-8">
+                                            <span
+                                                class="badge bg-white bg-opacity-20 text-white px-3 py-1.5 rounded-pill fw-semibold mb-3"
+                                                style="font-size: 11px;">
+                                                <i class="fas fa-check-circle me-1"></i> Verified Farmer Profile
+                                            </span>
+                                            <h3 class="fw-bold mb-2 fs-2">Welcome back, {{ auth()->user()->name }}!</h3>
+                                            <p class="text-white-50 mb-0" style="font-size: 13px;">Manage your land plots, post crop
+                                                updates
+                                                for investors, and log sale proofs from your unified farmer dashboard.</p>
+                                        </div>
+                                        <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
+                                            <button type="button"
+                                                onclick="document.querySelector('[data-tab=\'add-farm\']').click();"
+                                                class="btn btn-light rounded-pill px-4 py-2.5 fw-bold text-success shadow-sm"
+                                                style="font-size: 12px;">
+                                                <i class="fas fa-plus-circle me-1.5"></i> Register New Farm
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Stats Row (Only for Approved Farmers) -->
+                            <div class="row g-3 mb-4">
+                                <div class="col-sm-6 col-xl-3">
+                                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                                        <div class="card-body p-4">
+                                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                                <div class="bg-success bg-opacity-10 text-success rounded-3 p-3">
+                                                    <i class="fas fa-seedling fs-4"></i>
+                                                </div>
+                                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2.5 py-1"
+                                                    style="font-size: 10px;">Active Plots</span>
+                                            </div>
+                                            <h3 class="fw-bold text-dark mb-1 fs-3">{{ count($myFarms ?? []) }}</h3>
+                                            <div class="text-muted" style="font-size: 11px;">Total Registered Farms</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6 col-xl-3">
+                                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                                        <div class="card-body p-4">
+                                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                                <div class="bg-primary bg-opacity-10 text-primary rounded-3 p-3">
+                                                    <i class="fas fa-hand-holding-usd fs-4"></i>
+                                                </div>
+                                                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2.5 py-1"
+                                                    style="font-size: 10px;">Capital</span>
+                                            </div>
+                                            <h3 class="fw-bold text-dark mb-1 fs-3">
+                                                ₹{{ number_format($myFarms->sum('funding_raised') ?? 0) }}</h3>
+                                            <div class="text-muted" style="font-size: 11px;">Total Funding Raised</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6 col-xl-3">
+                                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                                        <div class="card-body p-4">
+                                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                                <div class="bg-info bg-opacity-10 text-info rounded-3 p-3">
+                                                    <i class="fas fa-ruler-combined fs-4"></i>
+                                                </div>
+                                                <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-2.5 py-1"
+                                                    style="font-size: 10px;">Acreage</span>
+                                            </div>
+                                            <h3 class="fw-bold text-dark mb-1 fs-3">{{ $myFarms->sum('total_acres') ?? 0 }}</h3>
+                                            <div class="text-muted" style="font-size: 11px;">Total Acres Cultivated</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6 col-xl-3">
+                                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                                        <div class="card-body p-4">
+                                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                                <div class="bg-warning bg-opacity-10 text-warning rounded-3 p-3">
+                                                    <i class="fas fa-clock fs-4"></i>
+                                                </div>
+                                                <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-2.5 py-1"
+                                                    style="font-size: 10px;">Status</span>
+                                            </div>
+                                            <h3 class="fw-bold text-dark mb-1 fs-3">
+                                                {{ $myFarms->where('status', 'pending')->count() }}
+                                            </h3>
+                                            <div class="text-muted" style="font-size: 11px;">Plots Pending Approval</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
                 </div>
 
                 <!-- 2. My Farms Tab -->
@@ -1096,11 +1661,12 @@
                                                 </div>
 
                                                 <div class="pt-3 border-top d-flex gap-2 align-items-center">
-                                                    <a href="{{ route('admin.farms.show', $farm) }}"
+                                                    <button type="button"
                                                         class="btn btn-outline-success btn-sm rounded-pill flex-fill fw-bold"
-                                                        style="font-size: 11px;" title="View Verification Overview">
+                                                        style="font-size: 11px;" title="View Farm Details"
+                                                        onclick="openFarmDetailsModal({{ $farm->id }})">
                                                         <i class="fas fa-eye me-1"></i> View Details
-                                                    </a>
+                                                    </button>
                                                     <a href="{{ route('admin.farms.edit', $farm) }}"
                                                         class="btn btn-outline-primary btn-sm rounded-pill flex-fill fw-bold"
                                                         style="font-size: 11px;" title="Edit Farm Plot">
@@ -1156,22 +1722,22 @@
                             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 text-center"
                                 style="font-size: 11px;">
                                 <div class="wizard-badge badge bg-success text-white px-3 py-2 rounded-pill fw-bold"
-                                    id="step-badge-1"><i class="fas fa-info-circle me-1"></i>01 Basic Details</div>
+                                    id="step-badge-1" onclick="goToWizardStep(1)" style="cursor: pointer;"><i class="fas fa-info-circle me-1"></i>01 Basic Details</div>
                                 <i class="fas fa-chevron-right text-muted"></i>
                                 <div class="wizard-badge badge bg-light text-muted px-3 py-2 rounded-pill fw-semibold"
-                                    id="step-badge-2"><i class="fas fa-coins me-1"></i>02 Investment</div>
+                                    id="step-badge-2" onclick="goToWizardStep(2)" style="cursor: pointer;"><i class="fas fa-coins me-1"></i>02 Investment</div>
                                 <i class="fas fa-chevron-right text-muted"></i>
                                 <div class="wizard-badge badge bg-light text-muted px-3 py-2 rounded-pill fw-semibold"
-                                    id="step-badge-3"><i class="fas fa-camera me-1"></i>03 Media</div>
+                                    id="step-badge-3" onclick="goToWizardStep(3)" style="cursor: pointer;"><i class="fas fa-camera me-1"></i>03 Media</div>
                                 <i class="fas fa-chevron-right text-muted"></i>
                                 <div class="wizard-badge badge bg-light text-muted px-3 py-2 rounded-pill fw-semibold"
-                                    id="step-badge-4"><i class="fas fa-calendar-alt me-1"></i>04 Yield</div>
+                                    id="step-badge-4" onclick="goToWizardStep(4)" style="cursor: pointer;"><i class="fas fa-calendar-alt me-1"></i>04 Yield & Timeline</div>
                                 <i class="fas fa-chevron-right text-muted"></i>
                                 <div class="wizard-badge badge bg-light text-muted px-3 py-2 rounded-pill fw-semibold"
-                                    id="step-badge-5"><i class="fas fa-file-contract me-1"></i>05 Terms</div>
+                                    id="step-badge-5" onclick="goToWizardStep(5)" style="cursor: pointer;"><i class="fas fa-file-contract me-1"></i>05 Terms</div>
                                 <i class="fas fa-chevron-right text-muted"></i>
                                 <div class="wizard-badge badge bg-light text-muted px-3 py-2 rounded-pill fw-semibold"
-                                    id="step-badge-6"><i class="fas fa-check-circle me-1"></i>06 Review</div>
+                                    id="step-badge-6" onclick="goToWizardStep(6)" style="cursor: pointer;"><i class="fas fa-check-circle me-1"></i>06 Review</div>
                             </div>
                         </div>
                     </div>
@@ -1179,20 +1745,39 @@
                     <div class="card border-0 shadow-sm rounded-4">
                         <div class="card-body p-4 p-lg-5">
                             <form action="{{ route('admin.farms.store') }}" method="POST" enctype="multipart/form-data"
-                                id="addFarmWizardForm">
+                                id="addFarmWizardForm" novalidate>
                                 @csrf
 
-                                <!-- Hidden JSON Fields for Controller -->
+                                <!-- Hidden JSON Fields & Financial Calculation State for Controller -->
                                 <input type="hidden" name="budget_breakdown" id="budget_breakdown_json"
                                     value="{{ old('budget_breakdown', '[]') }}">
                                 <input type="hidden" name="farming_timeline" id="farming_timeline_json"
                                     value="{{ old('farming_timeline', '[]') }}">
+                                <input type="hidden" name="total_budget" id="wiz_total_budget"
+                                    value="{{ old('total_budget', '350000') }}">
+                                <input type="hidden" name="calculated_roi" id="wiz_calculated_roi"
+                                    value="{{ old('calculated_roi', '28.6') }}">
+                                <input type="hidden" name="annualized_roi" id="wiz_annualized_roi"
+                                    value="{{ old('annualized_roi', '87.0') }}">
+                                <input type="hidden" name="crop_cycle_days" id="wiz_crop_cycle_days"
+                                    value="{{ old('crop_cycle_days', '120') }}">
+
+                                @if(session('benchmark_warnings'))
+                                    <div class="alert alert-warning border-0 rounded-4 p-3 mb-4 bg-warning bg-opacity-15 text-dark" style="font-size: 12px;">
+                                        <div class="fw-bold mb-1"><i class="fas fa-exclamation-triangle text-warning me-1"></i>Agricultural Benchmark Advisory:</div>
+                                        <ul class="mb-0 ps-3">
+                                            @foreach(session('benchmark_warnings') as $w)
+                                                <li>{{ $w }}</li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                @endif
 
                                 @if($errors->any())
-                                    <div class="alert alert-danger bg-danger bg-opacity-10 text-danger border-0 rounded-3 mb-4 p-3"
+                                    <div class="alert alert-danger no-auto-dismiss bg-danger bg-opacity-10 text-danger border-0 rounded-3 mb-4 p-3"
                                         style="font-size: 12px;">
                                         <div class="fw-bold mb-1"><i class="fas fa-exclamation-circle me-1"></i> Please fix the
-                                            following errors to submit your fund request:</div>
+                                            following errors to submit your farm application:</div>
                                         <ul class="mb-0 ps-3">
                                             @foreach($errors->all() as $error)
                                                 <li>{{ $error }}</li>
@@ -1200,7 +1785,7 @@
                                         </ul>
                                     </div>
                                     <script>
-                                        window.addEventListener('DOMContentLoaded', () => {
+                                        window.addEventListener('load', () => {
                                             // Auto-open Add Farm tab if there are validation errors
                                             const addFarmBtn = document.querySelector('[data-tab="add-farm"]');
                                             if (addFarmBtn) addFarmBtn.click();
@@ -1296,180 +1881,357 @@
                                     </div>
                                 </div>
 
-                                <!-- STEP 2: Investment & Budget Breakdown (Figma Exact) -->
+                                <!-- STEP 2: Investment & Budget Breakdown (Spacious Modern Layout) -->
                                 <div class="wizard-step-pane" id="wizard-step-2" style="display: none;">
-                                    <div class="row g-4 mb-4">
-                                        <div class="col-lg-8">
-                                            <h5 class="fw-bold text-dark mb-1">Budget Breakdown</h5>
-                                            <p class="text-muted mb-3" style="font-size: 12px;">Specify individual expenses for
-                                                this
-                                                farm project.</p>
-
-                                            <!-- Quick Expense Chips -->
-                                            <div class="d-flex flex-wrap gap-2 mb-3">
-                                                <button type="button" onclick="addBudgetItem('Seeds', 45000)"
-                                                    class="btn btn-sm btn-outline-secondary rounded-pill"
-                                                    style="font-size: 10px;">+
-                                                    Seeds</button>
-                                                <button type="button" onclick="addBudgetItem('Labor', 120000)"
-                                                    class="btn btn-sm btn-outline-secondary rounded-pill"
-                                                    style="font-size: 10px;">+
-                                                    Labor</button>
-                                                <button type="button" onclick="addBudgetItem('Irrigation', 85000)"
-                                                    class="btn btn-sm btn-outline-secondary rounded-pill"
-                                                    style="font-size: 10px;">+
-                                                    Irrigation</button>
-                                                <button type="button" onclick="addBudgetItem('Equipment', 50000)"
-                                                    class="btn btn-sm btn-outline-secondary rounded-pill"
-                                                    style="font-size: 10px;">+
-                                                    Equipment</button>
-                                                <button type="button" onclick="addBudgetItem('Fertilizer', 30000)"
-                                                    class="btn btn-sm btn-outline-secondary rounded-pill"
-                                                    style="font-size: 10px;">+
-                                                    Fertilizer</button>
-                                                <button type="button" onclick="addBudgetItem('Land preparation', 20000)"
-                                                    class="btn btn-sm btn-outline-secondary rounded-pill"
-                                                    style="font-size: 10px;">+
-                                                    Land preparation</button>
+                                    
+                                    <!-- 1. Full-Width Budget Breakdown Table -->
+                                    <div class="mb-5">
+                                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                                            <div>
+                                                <h5 class="fw-bold text-dark mb-1" style="font-size: 16px;">Itemized Budget Breakdown</h5>
+                                                <p class="text-muted mb-0" style="font-size: 12px;">Specify individual expenses, quantities in kg / units, and unit rates. Line item amounts and total budget are automatically calculated.</p>
                                             </div>
-
-                                            <!-- Budget Breakdown Table -->
-                                            <div class="table-responsive rounded-3 border mb-3">
-                                                <table class="table table-bordered mb-0 align-middle" style="font-size: 12px;">
-                                                    <thead class="bg-success text-white">
-                                                        <tr>
-                                                            <th>Purpose</th>
-                                                            <th style="width: 200px;">Amount requested (₹)</th>
-                                                            <th style="width: 50px;"></th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody id="budget_table_body">
-                                                        <tr>
-                                                            <td><input type="text"
-                                                                    class="form-control form-control-sm b-purpose"
-                                                                    value="Seeds"></td>
-                                                            <td><input type="number"
-                                                                    class="form-control form-control-sm b-amount" value="45000"
-                                                                    oninput="calculateBudgetTotal()"></td>
-                                                            <td><button type="button" class="btn btn-sm text-danger"
-                                                                    onclick="removeBudgetRow(this)"><i
-                                                                        class="fas fa-trash"></i></button></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td><input type="text"
-                                                                    class="form-control form-control-sm b-purpose"
-                                                                    value="Labor"></td>
-                                                            <td><input type="number"
-                                                                    class="form-control form-control-sm b-amount" value="120000"
-                                                                    oninput="calculateBudgetTotal()"></td>
-                                                            <td><button type="button" class="btn btn-sm text-danger"
-                                                                    onclick="removeBudgetRow(this)"><i
-                                                                        class="fas fa-trash"></i></button></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td><input type="text"
-                                                                    class="form-control form-control-sm b-purpose"
-                                                                    value="Irrigation"></td>
-                                                            <td><input type="number"
-                                                                    class="form-control form-control-sm b-amount" value="85000"
-                                                                    oninput="calculateBudgetTotal()"></td>
-                                                            <td><button type="button" class="btn btn-sm text-danger"
-                                                                    onclick="removeBudgetRow(this)"><i
-                                                                        class="fas fa-trash"></i></button></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td><input type="text"
-                                                                    class="form-control form-control-sm b-purpose"
-                                                                    value="Equipment"></td>
-                                                            <td><input type="number"
-                                                                    class="form-control form-control-sm b-amount" value="50000"
-                                                                    oninput="calculateBudgetTotal()"></td>
-                                                            <td><button type="button" class="btn btn-sm text-danger"
-                                                                    onclick="removeBudgetRow(this)"><i
-                                                                        class="fas fa-trash"></i></button></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td><input type="text"
-                                                                    class="form-control form-control-sm b-purpose"
-                                                                    value="Fertilizer"></td>
-                                                            <td><input type="number"
-                                                                    class="form-control form-control-sm b-amount" value="30000"
-                                                                    oninput="calculateBudgetTotal()"></td>
-                                                            <td><button type="button" class="btn btn-sm text-danger"
-                                                                    onclick="removeBudgetRow(this)"><i
-                                                                        class="fas fa-trash"></i></button></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td><input type="text"
-                                                                    class="form-control form-control-sm b-purpose"
-                                                                    value="Land preparation"></td>
-                                                            <td><input type="number"
-                                                                    class="form-control form-control-sm b-amount" value="20000"
-                                                                    oninput="calculateBudgetTotal()"></td>
-                                                            <td><button type="button" class="btn btn-sm text-danger"
-                                                                    onclick="removeBudgetRow(this)"><i
-                                                                        class="fas fa-trash"></i></button></td>
-                                                        </tr>
-                                                    </tbody>
-                                                    <tfoot>
-                                                        <tr class="fw-bold bg-light">
-                                                            <td>Total requested</td>
-                                                            <td id="budget_total_display">₹3,50,000</td>
-                                                            <td></td>
-                                                        </tr>
-                                                    </tfoot>
-                                                </table>
-                                            </div>
-                                            <button type="button" onclick="addBudgetItem('Custom Expense', 0)"
-                                                class="btn btn-sm btn-outline-success rounded-pill px-3"
-                                                style="font-size: 11px;">+
-                                                Add custom row</button>
+                                            <button type="button" onclick="addBudgetItem('Custom Expense', 10, 'kg', 0)"
+                                                class="btn btn-sm btn-outline-success rounded-pill px-3 py-1.5 fw-semibold"
+                                                style="font-size: 12px;">
+                                                <i class="fas fa-plus me-1"></i> Add Custom Row
+                                            </button>
                                         </div>
 
-                                        <div class="col-lg-4">
-                                            <div class="card border-0 bg-light rounded-4 p-3 mb-3">
-                                                <h6 class="fw-bold text-dark mb-3" style="font-size: 13px;">Investment Totals
-                                                </h6>
-                                                <div class="mb-3">
-                                                    <label class="form-label text-muted" style="font-size: 11px;">Total Funding
-                                                        Ask
-                                                        (₹)</label>
-                                                    <input type="number" name="funding_target" id="wiz_funding_target"
-                                                        class="form-control form-control-sm rounded-3 fw-bold"
-                                                        value="{{ old('funding_target', '350000') }}" required>
+                                        <!-- Quick Expense Chips -->
+                                        <div class="p-3 bg-light rounded-4 border mb-4">
+                                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                                <span class="text-muted fw-semibold me-1" style="font-size: 11px;"><i class="fas fa-bolt text-warning me-1"></i>Quick Add:</span>
+                                                <button type="button" onclick="addBudgetItem('Seeds', 50, 'kg', 900)"
+                                                    class="btn btn-sm btn-white bg-white border rounded-pill px-3 py-1 text-secondary shadow-sm"
+                                                    style="font-size: 11px;">+ Seeds (50 kg @ ₹900)</button>
+                                                <button type="button" onclick="addBudgetItem('Fertilizer', 300, 'kg', 100)"
+                                                    class="btn btn-sm btn-white bg-white border rounded-pill px-3 py-1 text-secondary shadow-sm"
+                                                    style="font-size: 11px;">+ Fertilizer (300 kg @ ₹100)</button>
+                                                <button type="button" onclick="addBudgetItem('Organic Manure', 500, 'kg', 40)"
+                                                    class="btn btn-sm btn-white bg-white border rounded-pill px-3 py-1 text-secondary shadow-sm"
+                                                    style="font-size: 11px;">+ Manure (500 kg @ ₹40)</button>
+                                                <button type="button" onclick="addBudgetItem('Pesticides / Bio', 20, 'kg', 1500)"
+                                                    class="btn btn-sm btn-white bg-white border rounded-pill px-3 py-1 text-secondary shadow-sm"
+                                                    style="font-size: 11px;">+ Pesticides (20 kg @ ₹1,500)</button>
+                                                <button type="button" onclick="addBudgetItem('Labor', 60, 'days', 2000)"
+                                                    class="btn btn-sm btn-white bg-white border rounded-pill px-3 py-1 text-secondary shadow-sm"
+                                                    style="font-size: 11px;">+ Labor (60 days @ ₹2,000)</button>
+                                                <button type="button" onclick="addBudgetItem('Irrigation', 1, 'plot', 85000)"
+                                                    class="btn btn-sm btn-white bg-white border rounded-pill px-3 py-1 text-secondary shadow-sm"
+                                                    style="font-size: 11px;">+ Irrigation</button>
+                                                <button type="button" onclick="addBudgetItem('Equipment Rental', 1, 'plot', 50000)"
+                                                    class="btn btn-sm btn-white bg-white border rounded-pill px-3 py-1 text-secondary shadow-sm"
+                                                    style="font-size: 11px;">+ Equipment</button>
+                                                <button type="button" onclick="addBudgetItem('Land preparation', 1, 'plot', 20000)"
+                                                    class="btn btn-sm btn-white bg-white border rounded-pill px-3 py-1 text-secondary shadow-sm"
+                                                    style="font-size: 11px;">+ Land Prep</button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Budget Breakdown Table with Spacious Columns & Generous Cell Padding -->
+                                        <div class="table-responsive rounded-4 border shadow-sm mb-2">
+                                            <table class="table table-hover mb-0 align-middle" style="font-size: 12.5px;">
+                                                <thead class="bg-success text-white">
+                                                    <tr>
+                                                        <th class="py-3 ps-3" style="min-width: 240px;">Item / Purpose</th>
+                                                        <th class="py-3" style="width: 115px;">Qty</th>
+                                                        <th class="py-3" style="width: 120px;">Unit</th>
+                                                        <th class="py-3" style="width: 140px;">Rate (₹ / unit)</th>
+                                                        <th class="py-3" style="width: 160px;">Amount (₹)</th>
+                                                        <th class="py-3 text-center" style="width: 50px;"></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="budget_table_body">
+                                                    <tr>
+                                                        <td class="py-2.5 ps-3"><input type="text" class="form-control form-control-sm rounded-3 py-1.5 b-purpose" value="Seeds" placeholder="e.g. Basmati Certified Seeds"></td>
+                                                        <td class="py-2.5"><input type="number" step="0.1" min="0" class="form-control form-control-sm rounded-3 py-1.5 b-qty" value="50" oninput="recalcRowBudget(this)"></td>
+                                                        <td class="py-2.5">
+                                                            <select class="form-select form-select-sm rounded-3 py-1.5 b-unit" onchange="calculateBudgetTotal()">
+                                                                <option value="kg" selected>kg</option>
+                                                                <option value="quintal">quintal</option>
+                                                                <option value="bags">bags</option>
+                                                                <option value="days">days</option>
+                                                                <option value="plot">plot</option>
+                                                                <option value="units">units</option>
+                                                            </select>
+                                                        </td>
+                                                        <td class="py-2.5"><input type="number" step="1" min="0" class="form-control form-control-sm rounded-3 py-1.5 b-rate" value="900" oninput="recalcRowBudget(this)" placeholder="₹/unit"></td>
+                                                        <td class="py-2.5"><input type="number" class="form-control form-control-sm rounded-3 py-1.5 b-amount fw-bold text-success bg-light" value="45000" oninput="calculateBudgetTotal()"></td>
+                                                        <td class="py-2.5 text-center"><button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="removeBudgetRow(this)"><i class="fas fa-trash-alt"></i></button></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="py-2.5 ps-3"><input type="text" class="form-control form-control-sm rounded-3 py-1.5 b-purpose" value="Labor" placeholder="e.g. Field Labor"></td>
+                                                        <td class="py-2.5"><input type="number" step="1" min="0" class="form-control form-control-sm rounded-3 py-1.5 b-qty" value="60" oninput="recalcRowBudget(this)"></td>
+                                                        <td class="py-2.5">
+                                                            <select class="form-select form-select-sm rounded-3 py-1.5 b-unit" onchange="calculateBudgetTotal()">
+                                                                <option value="kg">kg</option>
+                                                                <option value="quintal">quintal</option>
+                                                                <option value="bags">bags</option>
+                                                                <option value="days" selected>days</option>
+                                                                <option value="plot">plot</option>
+                                                                <option value="units">units</option>
+                                                            </select>
+                                                        </td>
+                                                        <td class="py-2.5"><input type="number" step="1" min="0" class="form-control form-control-sm rounded-3 py-1.5 b-rate" value="2000" oninput="recalcRowBudget(this)" placeholder="₹/unit"></td>
+                                                        <td class="py-2.5"><input type="number" class="form-control form-control-sm rounded-3 py-1.5 b-amount fw-bold text-success bg-light" value="120000" oninput="calculateBudgetTotal()"></td>
+                                                        <td class="py-2.5 text-center"><button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="removeBudgetRow(this)"><i class="fas fa-trash-alt"></i></button></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="py-2.5 ps-3"><input type="text" class="form-control form-control-sm rounded-3 py-1.5 b-purpose" value="Irrigation" placeholder="e.g. Drip Irrigation"></td>
+                                                        <td class="py-2.5"><input type="number" step="1" min="0" class="form-control form-control-sm rounded-3 py-1.5 b-qty" value="1" oninput="recalcRowBudget(this)"></td>
+                                                        <td class="py-2.5">
+                                                            <select class="form-select form-select-sm rounded-3 py-1.5 b-unit" onchange="calculateBudgetTotal()">
+                                                                <option value="kg">kg</option>
+                                                                <option value="quintal">quintal</option>
+                                                                <option value="bags">bags</option>
+                                                                <option value="days">days</option>
+                                                                <option value="plot" selected>plot</option>
+                                                                <option value="units">units</option>
+                                                            </select>
+                                                        </td>
+                                                        <td class="py-2.5"><input type="number" step="1" min="0" class="form-control form-control-sm rounded-3 py-1.5 b-rate" value="85000" oninput="recalcRowBudget(this)" placeholder="₹/unit"></td>
+                                                        <td class="py-2.5"><input type="number" class="form-control form-control-sm rounded-3 py-1.5 b-amount fw-bold text-success bg-light" value="85000" oninput="calculateBudgetTotal()"></td>
+                                                        <td class="py-2.5 text-center"><button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="removeBudgetRow(this)"><i class="fas fa-trash-alt"></i></button></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="py-2.5 ps-3"><input type="text" class="form-control form-control-sm rounded-3 py-1.5 b-purpose" value="Equipment" placeholder="e.g. Machinery Rental"></td>
+                                                        <td class="py-2.5"><input type="number" step="1" min="0" class="form-control form-control-sm rounded-3 py-1.5 b-qty" value="1" oninput="recalcRowBudget(this)"></td>
+                                                        <td class="py-2.5">
+                                                            <select class="form-select form-select-sm rounded-3 py-1.5 b-unit" onchange="calculateBudgetTotal()">
+                                                                <option value="kg">kg</option>
+                                                                <option value="quintal">quintal</option>
+                                                                <option value="bags">bags</option>
+                                                                <option value="days">days</option>
+                                                                <option value="plot" selected>plot</option>
+                                                                <option value="units">units</option>
+                                                            </select>
+                                                        </td>
+                                                        <td class="py-2.5"><input type="number" step="1" min="0" class="form-control form-control-sm rounded-3 py-1.5 b-rate" value="50000" oninput="recalcRowBudget(this)" placeholder="₹/unit"></td>
+                                                        <td class="py-2.5"><input type="number" class="form-control form-control-sm rounded-3 py-1.5 b-amount fw-bold text-success bg-light" value="50000" oninput="calculateBudgetTotal()"></td>
+                                                        <td class="py-2.5 text-center"><button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="removeBudgetRow(this)"><i class="fas fa-trash-alt"></i></button></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="py-2.5 ps-3"><input type="text" class="form-control form-control-sm rounded-3 py-1.5 b-purpose" value="Fertilizer" placeholder="e.g. NPK Fertilizer"></td>
+                                                        <td class="py-2.5"><input type="number" step="1" min="0" class="form-control form-control-sm rounded-3 py-1.5 b-qty" value="300" oninput="recalcRowBudget(this)"></td>
+                                                        <td class="py-2.5">
+                                                            <select class="form-select form-select-sm rounded-3 py-1.5 b-unit" onchange="calculateBudgetTotal()">
+                                                                <option value="kg" selected>kg</option>
+                                                                <option value="quintal">quintal</option>
+                                                                <option value="bags">bags</option>
+                                                                <option value="days">days</option>
+                                                                <option value="plot">plot</option>
+                                                                <option value="units">units</option>
+                                                            </select>
+                                                        </td>
+                                                        <td class="py-2.5"><input type="number" step="1" min="0" class="form-control form-control-sm rounded-3 py-1.5 b-rate" value="100" oninput="recalcRowBudget(this)" placeholder="₹/unit"></td>
+                                                        <td class="py-2.5"><input type="number" class="form-control form-control-sm rounded-3 py-1.5 b-amount fw-bold text-success bg-light" value="30000" oninput="calculateBudgetTotal()"></td>
+                                                        <td class="py-2.5 text-center"><button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="removeBudgetRow(this)"><i class="fas fa-trash-alt"></i></button></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="py-2.5 ps-3"><input type="text" class="form-control form-control-sm rounded-3 py-1.5 b-purpose" value="Land preparation" placeholder="e.g. Tractor Tilling"></td>
+                                                        <td class="py-2.5"><input type="number" step="1" min="0" class="form-control form-control-sm rounded-3 py-1.5 b-qty" value="1" oninput="recalcRowBudget(this)"></td>
+                                                        <td class="py-2.5">
+                                                            <select class="form-select form-select-sm rounded-3 py-1.5 b-unit" onchange="calculateBudgetTotal()">
+                                                                <option value="kg">kg</option>
+                                                                <option value="quintal">quintal</option>
+                                                                <option value="bags">bags</option>
+                                                                <option value="days">days</option>
+                                                                <option value="plot" selected>plot</option>
+                                                                <option value="units">units</option>
+                                                            </select>
+                                                        </td>
+                                                        <td class="py-2.5"><input type="number" step="1" min="0" class="form-control form-control-sm rounded-3 py-1.5 b-rate" value="20000" oninput="recalcRowBudget(this)" placeholder="₹/unit"></td>
+                                                        <td class="py-2.5"><input type="number" class="form-control form-control-sm rounded-3 py-1.5 b-amount fw-bold text-success bg-light" value="20000" oninput="calculateBudgetTotal()"></td>
+                                                        <td class="py-2.5 text-center"><button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="removeBudgetRow(this)"><i class="fas fa-trash-alt"></i></button></td>
+                                                    </tr>
+                                                </tbody>
+                                                <tfoot class="border-top-2">
+                                                    <tr class="fw-bold bg-light">
+                                                        <td colspan="4" class="text-end py-3 pe-3 text-muted" style="font-size: 13px;">Total Budget Requested (Sum of all items):</td>
+                                                        <td class="py-3">
+                                                            <div id="budget_total_display" class="text-success fw-bold fs-5">₹3,50,000</div>
+                                                        </td>
+                                                        <td class="py-3"></td>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <!-- 2. Spacious 2-Column Cards: Yield Forecast & Capital Structure / ROI Engine -->
+                                    <div class="row g-4 mb-5">
+                                        <!-- Left Card: Projected Harvest & Market Revenue -->
+                                        <div class="col-lg-6">
+                                            <div class="card border shadow-sm rounded-4 p-4 h-100 bg-white">
+                                                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                                                    <h6 class="fw-bold text-dark mb-0" style="font-size: 14px;">
+                                                        <i class="fas fa-wheat-awn text-success me-2"></i>1. Projected Harvest & Market Revenue
+                                                    </h6>
+                                                    <span class="badge bg-success bg-opacity-10 text-success px-2 py-1" style="font-size: 11px;">Yield Forecast</span>
                                                 </div>
-                                                <div class="mb-3">
-                                                    <label class="form-label text-muted" style="font-size: 11px;">Your
-                                                        Contribution
-                                                        / Farmer's Stake (₹)</label>
-                                                    <input type="number" name="your_contribution" id="wiz_your_contribution"
-                                                        class="form-control form-control-sm rounded-3 fw-bold text-success"
-                                                        value="{{ old('your_contribution', '50000') }}" required>
-                                                    <div class="text-muted mt-1" style="font-size: 10px;">Amount of your own
-                                                        capital
-                                                        committed to this crop cycle.</div>
+                                                <p class="text-muted mb-3" style="font-size: 12px;">Estimate expected yield and wholesale market selling price. Used to calculate gross crop revenue automatically.</p>
+
+                                                <!-- Crop Benchmark Advisory & Non-blocking Warnings (Fix #5) -->
+                                                <div id="crop_benchmark_hint" class="alert alert-info py-2 px-3 rounded-3 mb-3 border-0 bg-info bg-opacity-10 text-dark" style="font-size: 11px; display: none;"></div>
+                                                <div id="crop_benchmark_warnings_box" class="alert alert-warning py-2.5 px-3 rounded-3 mb-3 border-0 bg-warning bg-opacity-15 text-dark" style="font-size: 11.5px; display: none;">
+                                                    <div class="fw-bold text-dark mb-1"><i class="fas fa-exclamation-triangle text-warning me-1"></i>Benchmark Variance Advisory (Non-blocking):</div>
+                                                    <ul id="crop_benchmark_warning_text" class="mb-0 ps-3"></ul>
                                                 </div>
-                                                <div class="mb-3">
-                                                    <label class="form-label text-muted" style="font-size: 11px;">Expected
-                                                        Investor
-                                                        ROI (%)</label>
-                                                    <input type="number" step="0.1" name="expected_roi" id="wiz_roi"
-                                                        class="form-control form-control-sm rounded-3"
-                                                        value="{{ old('expected_roi', '15') }}" required>
-                                                    <div class="text-muted mt-1" style="font-size: 10px;">Subject to admin
-                                                        review
-                                                        and market conditions.</div>
+
+                                                <div class="row g-3 mb-3">
+                                                    <div class="col-sm-6">
+                                                        <label class="form-label text-dark fw-semibold mb-1" style="font-size: 12px;">Expected Harvest Yield (kg) <span class="text-danger">*</span></label>
+                                                        <div class="input-group">
+                                                            <input type="number" step="100" name="expected_yield_kg" id="wiz_expected_yield_kg" class="form-control rounded-start py-2" value="{{ old('expected_yield_kg', '18000') }}" placeholder="e.g. 18000" style="font-size: 13px;" required>
+                                                            <span class="input-group-text bg-light text-muted fw-semibold">kg</span>
+                                                        </div>
+                                                        <div class="text-muted mt-1 fw-semibold" style="font-size: 11px;" id="wiz_yield_tons_display">≈ 18.00 Tons</div>
+                                                    </div>
+                                                    <div class="col-sm-6">
+                                                        <label class="form-label text-dark fw-semibold mb-1" style="font-size: 12px;">Selling Price (₹ / kg) <span class="text-danger">*</span></label>
+                                                        <div class="input-group">
+                                                            <span class="input-group-text bg-light text-muted fw-semibold">₹</span>
+                                                            <input type="number" step="0.5" name="selling_price_kg" id="wiz_expected_price_kg" class="form-control rounded-end py-2" value="{{ old('selling_price_kg', '25') }}" placeholder="e.g. 25" style="font-size: 13px;" required>
+                                                        </div>
+                                                        <div class="text-muted mt-1 fw-semibold" style="font-size: 11px;" id="wiz_price_ton_display">₹25,000 / Ton</div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Financial Outcome Projection Box -->
+                                                <div class="p-3 rounded-4 bg-light border mb-3">
+                                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                                        <span class="text-muted" style="font-size: 12px;">Projected Gross Crop Revenue:</span>
+                                                        <strong class="text-dark fs-6" id="calc_projected_revenue">₹4,50,000</strong>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                                        <span class="text-muted" style="font-size: 12px;">Less Total Production Budget:</span>
+                                                        <strong class="text-danger" id="calc_budget_deduct">- ₹3,50,000</strong>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                                        <span class="fw-bold text-dark" style="font-size: 13px;">Net Cycle Profit:</span>
+                                                        <strong class="text-success fs-5" id="calc_projected_profit">₹1,00,000</strong>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Fix #5: Optional Yield Shortfall Stress Test Scenario -->
+                                                <div class="p-3 rounded-4 bg-white border">
+                                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                                        <div class="form-check form-switch mb-0">
+                                                            <input class="form-check-input" type="checkbox" name="apply_shortfall" id="wiz_toggle_shortfall" value="1">
+                                                            <label class="form-check-label fw-bold text-dark" for="wiz_toggle_shortfall" style="font-size: 12px;">
+                                                                Simulate -15% Yield Shortfall Scenario
+                                                            </label>
+                                                        </div>
+                                                        <span class="badge bg-secondary bg-opacity-10 text-secondary" style="font-size: 10px;">Downside Stress Test</span>
+                                                    </div>
+                                                    <div id="shortfall_simulation_card" style="display: none;" class="pt-2 border-top">
+                                                        <div class="d-flex justify-content-between align-items-center mb-1 text-muted" style="font-size: 11.5px;">
+                                                            <span>Stressed Yield (-15%):</span>
+                                                            <strong class="text-dark" id="stress_yield_display">15,300 kg</strong>
+                                                        </div>
+                                                        <div class="d-flex justify-content-between align-items-center mb-1 text-muted" style="font-size: 11.5px;">
+                                                            <span>Stressed Revenue:</span>
+                                                            <strong class="text-dark" id="stress_rev_display">₹3,82,500</strong>
+                                                        </div>
+                                                        <div class="d-flex justify-content-between align-items-center mb-1 text-muted" style="font-size: 11.5px;">
+                                                            <span>Stressed Net Profit:</span>
+                                                            <strong class="text-success" id="stress_profit_display">₹32,500</strong>
+                                                        </div>
+                                                        <div class="d-flex justify-content-between align-items-center pt-1 border-top" style="font-size: 12px;">
+                                                            <span class="fw-bold text-dark">Stressed Investor Return:</span>
+                                                            <span class="badge bg-warning text-dark px-2 py-1 fw-bold" id="stress_roi_badge">7.6% Cycle ROI</span>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
+                                        </div>
 
-                                            <div
-                                                class="card border-0 bg-success bg-opacity-10 rounded-4 p-3 border-dashed border-success">
-                                                <div class="fw-bold text-dark mb-1" style="font-size: 12px;"><i
-                                                        class="fas fa-lightbulb text-warning me-1"></i>Why this matters</div>
-                                                <p class="text-muted mb-0" style="font-size: 10px;">A clear breakdown helps
-                                                    investors understand how their capital contributes to productivity. This
-                                                    data
-                                                    will be part of your public farm listing profile.</p>
+                                        <!-- Right Card: Capital Structure & Automatic Investor ROI -->
+                                        <div class="col-lg-6">
+                                            <div class="card border shadow-sm rounded-4 p-4 h-100 bg-white">
+                                                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                                                    <h6 class="fw-bold text-dark mb-0" style="font-size: 14px;">
+                                                        <i class="fas fa-coins text-warning me-2"></i>2. Capital Structure & Automatic Investor ROI
+                                                    </h6>
+                                                    <span class="badge bg-success bg-opacity-10 text-success px-2 py-1" style="font-size: 11px;" id="calc_override_status_badge">Calculated (Pure Engine)</span>
+                                                </div>
+                                                <p class="text-muted mb-3" style="font-size: 12px;">Net profit is allocated <strong>70% to investors</strong> and <strong>30% retained by the farmer</strong> (configurable in system settings).</p>
+
+                                                <!-- Capital Parameters Grid -->
+                                                <div class="row g-2 mb-3">
+                                                    <div class="col-sm-4">
+                                                        <div class="p-2.5 rounded-3 bg-light border text-center">
+                                                            <div class="text-muted text-uppercase" style="font-size: 9px; font-weight: 700;">TOTAL BUDGET</div>
+                                                            <div class="fw-bold text-dark fs-6 mt-1" id="wiz_total_budget_display">₹3,50,000</div>
+                                                            <div class="text-muted" style="font-size: 9px;">Sum of items</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-sm-4">
+                                                        <div class="p-2.5 rounded-3 bg-light border text-center">
+                                                            <div class="text-muted text-uppercase" style="font-size: 9px; font-weight: 700;">FARMER STAKE</div>
+                                                            <div class="input-group input-group-sm mt-1">
+                                                                <span class="input-group-text bg-white text-muted">₹</span>
+                                                                <input type="number" name="your_contribution" id="wiz_your_contribution"
+                                                                    class="form-control text-center fw-bold text-success"
+                                                                    value="{{ old('your_contribution', '50000') }}" min="0" required>
+                                                            </div>
+                                                            <div class="text-muted" style="font-size: 9px;">Committed stake</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-sm-4">
+                                                        <div class="p-2.5 rounded-3 bg-success bg-opacity-10 border border-success border-opacity-25 text-center">
+                                                            <div class="text-success text-uppercase" style="font-size: 9px; font-weight: 700;">INVESTOR TARGET</div>
+                                                            <div class="fw-bold text-success fs-6 mt-1" id="wiz_funding_target_display">₹3,00,000</div>
+                                                            <div class="text-muted" style="font-size: 9px;">Capital ask</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Hidden Input bound to Investor Funding Target (Fix #2) -->
+                                                <input type="hidden" name="funding_target" id="wiz_funding_target" value="{{ old('funding_target', '300000') }}">
+
+                                                <!-- Fix #2 Real-time Validation Error Container -->
+                                                <div id="wiz_stake_validation_error" class="alert alert-danger py-2 px-3 rounded-3 mb-3 border-0 bg-danger bg-opacity-10 text-danger fw-semibold" style="font-size: 11px; display: none;"></div>
+
+                                                <!-- Returns Box with Cycle ROI & Annualized ROI (Fix #3) -->
+                                                <div class="p-3 rounded-4 bg-light border mb-3">
+                                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                                        <label class="form-label text-dark fw-bold mb-0" style="font-size: 13px;">Expected Investor Returns</label>
+                                                        <div class="d-flex gap-1.5 flex-wrap">
+                                                            <span class="badge bg-success text-white px-2.5 py-1 fw-bold" id="calc_cycle_roi_badge">23.3% Cycle ROI</span>
+                                                            <span class="badge bg-primary bg-opacity-15 text-primary px-2.5 py-1 fw-bold" id="calc_annualized_roi_badge">71.0% Annualized (120d)</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="input-group">
+                                                        <input type="number" step="0.1" name="expected_roi" id="wiz_roi"
+                                                            class="form-control rounded-start py-2 fw-bold text-success fs-5 bg-light"
+                                                            value="{{ old('expected_roi', '23.3') }}" readonly required>
+                                                        <span class="input-group-text bg-white text-muted fw-bold">%</span>
+                                                    </div>
+
+                                                    <!-- Fix #1: Live Dynamic Formula Note (Never Static) -->
+                                                    <div class="p-2.5 rounded-3 bg-white border mt-2.5" id="formula_note_live" style="font-size: 11px; line-height: 1.5;">
+                                                        <i class="fas fa-calculator text-success me-1"></i><strong>Formula:</strong> Live formula note computing...
+                                                    </div>
+                                                </div>
+
+                                                <!-- Fix #4: Admin ROI Override with Audit Log Requirement -->
+                                                <div class="p-3 rounded-4 bg-white border">
+                                                    <div class="form-check form-switch mb-2">
+                                                        <input class="form-check-input" type="checkbox" name="is_roi_overridden" id="wiz_is_roi_overridden" value="1" {{ old('is_roi_overridden') ? 'checked' : '' }}>
+                                                        <label class="form-check-label fw-bold text-dark" for="wiz_is_roi_overridden" style="font-size: 12px;">
+                                                            Override Calculated ROI (Admin Special Terms)
+                                                        </label>
+                                                    </div>
+                                                    <div id="override_reason_container" style="{{ old('is_roi_overridden') ? 'display: block;' : 'display: none;' }}" class="pt-2 border-top">
+                                                        <label class="form-label text-muted mb-1 fw-semibold" style="font-size: 11px;">Override Justification / Audit Reason <span class="text-danger">*</span></label>
+                                                        <textarea name="roi_override_reason" id="wiz_override_reason" class="form-control form-control-sm rounded-3 mb-1.5" rows="2" placeholder="e.g. Secured pre-contract wholesale purchase agreement with certified organic distributor...">{{ old('roi_override_reason') }}</textarea>
+                                                        <div class="text-muted" style="font-size: 10px;">
+                                                            <i class="fas fa-shield-alt text-warning me-1"></i>This override and justification will be recorded in the system audit log. Both the calculated and overridden ROI remain visible to administrators.
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -1489,7 +2251,7 @@
                                 <!-- STEP 3: Media Uploads (Figma Exact) -->
                                 <div class="wizard-step-pane" id="wizard-step-3" style="display: none;">
                                     <div class="card border-0 bg-light rounded-4 p-4 mb-4">
-                                        <h6 class="fw-bold text-dark mb-1">Farm Photos</h6>
+                                 ..       <h6 class="fw-bold text-dark mb-1">Farm Photos</h6>
                                         <p class="text-muted mb-3" style="font-size: 11px;">Visual proof of your land,
                                             equipment,
                                             and current progress.</p>
@@ -1549,87 +2311,159 @@
                                     </div>
                                 </div>
 
-                                <!-- STEP 4: Yield & Farming Timeline (Figma Exact) -->
+                                <!-- STEP 4: Yield & Farming Timeline (Figma Exact & Fully Interactive) -->
                                 <div class="wizard-step-pane" id="wizard-step-4" style="display: none;">
-                                    <div class="row g-3 mb-4">
-                                        <div class="col-md-6">
-                                            <label class="form-label text-dark fw-semibold" style="font-size: 12px;">Total
-                                                Yielding
-                                                Period (Months) <span class="text-danger">*</span></label>
-                                            <input type="number" name="yielding_period" id="wiz_yielding_period"
-                                                class="form-control rounded-3 py-2" value="{{ old('yielding_period', '6') }}"
-                                                required style="font-size: 12px;">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label text-dark fw-semibold" style="font-size: 12px;">Expected
-                                                Start
-                                                Date <span class="text-danger">*</span></label>
-                                            <input type="date" name="expected_start_date" id="wiz_start_date"
-                                                class="form-control rounded-3 py-2"
-                                                value="{{ old('expected_start_date', date('Y-m-d')) }}" required
-                                                style="font-size: 12px;">
-                                        </div>
-                                    </div>
-
-                                    <div class="card border-0 rounded-4 overflow-hidden mb-4">
-                                        <div class="bg-success p-3 text-white">
-                                            <h6 class="fw-bold mb-0" style="font-size: 13px;">Farming Timeline</h6>
-                                            <p class="mb-0 text-white-50" style="font-size: 10px;">Break the farming cycle into
-                                                specific stages to help investors understand the process.</p>
-                                        </div>
-                                        <div class="card-body bg-light p-3">
-                                            <div id="timeline_stages_container">
-                                                <div class="row g-2 mb-2 align-items-center stage-row">
-                                                    <div class="col-md-4"><input type="text"
-                                                            class="form-control form-control-sm stage-name"
-                                                            value="Land Preparation"></div>
-                                                    <div class="col-md-2"><input type="number"
-                                                            class="form-control form-control-sm stage-start" value="0"></div>
-                                                    <div class="col-md-2"><input type="number"
-                                                            class="form-control form-control-sm stage-end" value="1"></div>
-                                                    <div class="col-md-3"><input type="text"
-                                                            class="form-control form-control-sm stage-dur" value="1 Month"
-                                                            readonly>
-                                                    </div>
-                                                    <div class="col-md-1"><button type="button" class="btn btn-sm text-danger"
-                                                            onclick="removeStageRow(this)"><i class="fas fa-times"></i></button>
+                                    <!-- Live Yield Forecast Summary Card from Step 2 -->
+                                    <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden" style="background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border: 1px solid #bbf7d0 !important;">
+                                        <div class="card-body p-4">
+                                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="badge bg-success text-white px-2.5 py-1 rounded-pill fw-bold" style="font-size: 11px;">
+                                                        <i class="fas fa-seedling me-1"></i> Harvest Yield & Revenue Forecast
+                                                    </span>
+                                                    <small class="text-muted" style="font-size: 11px;">Live harvest projections calculated in Step 2</small>
+                                                </div>
+                                                <button type="button" onclick="goToWizardStep(2)" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 fw-bold" style="font-size: 11px;">
+                                                    <i class="fas fa-edit me-1"></i> Edit Yield in Step 2
+                                                </button>
+                                            </div>
+                                            <div class="row g-3 text-dark">
+                                                <div class="col-md-4">
+                                                    <div class="p-3 rounded-3 bg-white border border-success border-opacity-25 h-100 shadow-sm">
+                                                        <div class="text-muted text-uppercase fw-bold mb-1" style="font-size: 10px; letter-spacing: 0.5px;">Expected Harvest Yield</div>
+                                                        <div class="fw-bold text-success fs-5" id="wiz_step4_yield_tons">≈ 18.00 Tons</div>
+                                                        <div class="text-muted" style="font-size: 11px;" id="wiz_step4_yield_kg">18,000 kg total</div>
                                                     </div>
                                                 </div>
-                                                <div class="row g-2 mb-2 align-items-center stage-row">
-                                                    <div class="col-md-4"><input type="text"
-                                                            class="form-control form-control-sm stage-name"
-                                                            value="Sowing & Germination"></div>
-                                                    <div class="col-md-2"><input type="number"
-                                                            class="form-control form-control-sm stage-start" value="1"></div>
-                                                    <div class="col-md-2"><input type="number"
-                                                            class="form-control form-control-sm stage-end" value="2"></div>
-                                                    <div class="col-md-3"><input type="text"
-                                                            class="form-control form-control-sm stage-dur" value="1 Month"
-                                                            readonly>
-                                                    </div>
-                                                    <div class="col-md-1"><button type="button" class="btn btn-sm text-danger"
-                                                            onclick="removeStageRow(this)"><i class="fas fa-times"></i></button>
+                                                <div class="col-md-4">
+                                                    <div class="p-3 rounded-3 bg-white border border-success border-opacity-25 h-100 shadow-sm">
+                                                        <div class="text-muted text-uppercase fw-bold mb-1" style="font-size: 10px; letter-spacing: 0.5px;">Projected Selling Price</div>
+                                                        <div class="fw-bold text-dark fs-5" id="wiz_step4_price_display">₹25.00 / kg</div>
+                                                        <div class="text-muted" style="font-size: 11px;" id="wiz_step4_price_ton_display">₹25,000 / Ton</div>
                                                     </div>
                                                 </div>
-                                                <div class="row g-2 mb-2 align-items-center stage-row">
-                                                    <div class="col-md-4"><input type="text"
-                                                            class="form-control form-control-sm stage-name"
-                                                            value="Vegetative Growth"></div>
-                                                    <div class="col-md-2"><input type="number"
-                                                            class="form-control form-control-sm stage-start" value="2"></div>
-                                                    <div class="col-md-2"><input type="number"
-                                                            class="form-control form-control-sm stage-end" value="5"></div>
-                                                    <div class="col-md-3"><input type="text"
-                                                            class="form-control form-control-sm stage-dur" value="3 Months"
-                                                            readonly></div>
-                                                    <div class="col-md-1"><button type="button" class="btn btn-sm text-danger"
-                                                            onclick="removeStageRow(this)"><i class="fas fa-times"></i></button>
+                                                <div class="col-md-4">
+                                                    <div class="p-3 rounded-3 bg-white border border-success border-opacity-25 h-100 shadow-sm">
+                                                        <div class="text-muted text-uppercase fw-bold mb-1" style="font-size: 10px; letter-spacing: 0.5px;">Gross Crop Revenue</div>
+                                                        <div class="fw-bold text-primary fs-5" id="wiz_step4_revenue_display">₹4,50,000</div>
+                                                        <div class="text-muted" style="font-size: 11px;">Total anticipated harvest realization</div>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <button type="button" onclick="addStageRow('Harvesting', 5, 6)"
-                                                class="btn btn-sm btn-outline-success rounded-pill px-3 mt-2"
-                                                style="font-size: 11px;">+ Add Another Stage</button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Cycle Duration & Expected Dates -->
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label text-dark fw-semibold d-flex justify-content-between align-items-center" style="font-size: 12px;">
+                                                <span>Total Yielding Period (Months) <span class="text-danger">*</span></span>
+                                                <span class="badge bg-success bg-opacity-10 text-success fw-semibold" id="wiz_auto_period_badge" style="font-size: 10px;">
+                                                    <i class="fas fa-magic me-1"></i>Auto-syncs with crop & timeline
+                                                </span>
+                                            </label>
+                                            <input type="number" step="0.5" name="yielding_period" id="wiz_yielding_period"
+                                                class="form-control rounded-3 py-2" value="{{ old('yielding_period', '3') }}"
+                                                min="1" max="60" required style="font-size: 13px;" oninput="onYieldingPeriodInput()">
+                                            <div class="text-muted mt-1" style="font-size: 11px;">Automatically changes with crop category (Vegetables: 3m, Paddy: 4m, Fruits: 6m) and timeline stages.</div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label text-dark fw-semibold" style="font-size: 12px;">Expected Cultivation Start Date <span class="text-danger">*</span></label>
+                                            <input type="date" name="expected_start_date" id="wiz_start_date"
+                                                class="form-control rounded-3 py-2"
+                                                value="{{ old('expected_start_date', date('Y-m-d')) }}" required
+                                                style="font-size: 13px;" oninput="updateYieldTabSchedule()">
+                                            <div class="text-muted mt-1" style="font-size: 11px;">Planned field preparation and sowing kick-off date.</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Live Projected Harvest Date Banner -->
+                                    <div class="p-3 rounded-4 mb-4 bg-light border d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                                <i class="fas fa-calendar-check" style="font-size: 14px;"></i>
+                                            </div>
+                                            <div>
+                                                <div class="text-muted fw-bold text-uppercase" style="font-size: 9px; letter-spacing: 0.5px;">Estimated Harvest Completion</div>
+                                                <div class="fw-bold text-success fs-6" id="wiz_projected_harvest_display">—</div>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="badge bg-white text-secondary border px-3 py-1.5 rounded-pill fw-semibold" id="wiz_timeline_comparison_badge" style="font-size: 11px;">
+                                                Timeline: 6 / 6 Months
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Farming Timeline Stages Card -->
+                                    <div class="card border-0 rounded-4 overflow-hidden mb-4 shadow-sm">
+                                        <div class="bg-success p-3 text-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                            <div>
+                                                <h6 class="fw-bold mb-0" style="font-size: 13px;"><i class="fas fa-tasks me-1.5"></i> Farming Timeline Stages</h6>
+                                                <p class="mb-0 text-white-50" style="font-size: 10px;">Break the farming cycle into specific milestones so investors track field progress.</p>
+                                            </div>
+                                            <button type="button" onclick="addStageRow()"
+                                                class="btn btn-sm btn-light text-success fw-bold rounded-pill px-3 py-1"
+                                                style="font-size: 11px;"><i class="fas fa-plus-circle me-1"></i> Add Stage</button>
+                                        </div>
+                                        <div class="card-body bg-light p-3">
+                                            <div class="row g-2 mb-2 px-1 text-muted fw-bold" style="font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase;">
+                                                <div class="col-md-4">Stage Name</div>
+                                                <div class="col-md-2">Start Month</div>
+                                                <div class="col-md-2">End Month</div>
+                                                <div class="col-md-3">Duration</div>
+                                                <div class="col-md-1 text-center">Remove</div>
+                                            </div>
+                                            <div id="timeline_stages_container">
+                                                <!-- Row 1 -->
+                                                <div class="row g-2 mb-2 align-items-center stage-row">
+                                                    <div class="col-md-4"><input type="text" class="form-control form-control-sm stage-name" value="Land Preparation & Soil Tillage" oninput="syncTimelineJson()"></div>
+                                                    <div class="col-md-2"><input type="number" step="0.5" min="0" class="form-control form-control-sm stage-start" value="0" oninput="updateStageRowDuration(this)"></div>
+                                                    <div class="col-md-2"><input type="number" step="0.5" min="0" class="form-control form-control-sm stage-end" value="1" oninput="updateStageRowDuration(this)"></div>
+                                                    <div class="col-md-3"><input type="text" class="form-control form-control-sm stage-dur bg-white" value="1 Month" readonly></div>
+                                                    <div class="col-md-1 text-center"><button type="button" class="btn btn-sm text-danger" onclick="removeStageRow(this)"><i class="fas fa-times"></i></button></div>
+                                                </div>
+                                                <!-- Row 2 -->
+                                                <div class="row g-2 mb-2 align-items-center stage-row">
+                                                    <div class="col-md-4"><input type="text" class="form-control form-control-sm stage-name" value="Sowing, Nursery & Germination" oninput="syncTimelineJson()"></div>
+                                                    <div class="col-md-2"><input type="number" step="0.5" min="0" class="form-control form-control-sm stage-start" value="1" oninput="updateStageRowDuration(this)"></div>
+                                                    <div class="col-md-2"><input type="number" step="0.5" min="0" class="form-control form-control-sm stage-end" value="2" oninput="updateStageRowDuration(this)"></div>
+                                                    <div class="col-md-3"><input type="text" class="form-control form-control-sm stage-dur bg-white" value="1 Month" readonly></div>
+                                                    <div class="col-md-1 text-center"><button type="button" class="btn btn-sm text-danger" onclick="removeStageRow(this)"><i class="fas fa-times"></i></button></div>
+                                                </div>
+                                                <!-- Row 3 -->
+                                                <div class="row g-2 mb-2 align-items-center stage-row">
+                                                    <div class="col-md-4"><input type="text" class="form-control form-control-sm stage-name" value="Vegetative Growth & Fertilization" oninput="syncTimelineJson()"></div>
+                                                    <div class="col-md-2"><input type="number" step="0.5" min="0" class="form-control form-control-sm stage-start" value="2" oninput="updateStageRowDuration(this)"></div>
+                                                    <div class="col-md-2"><input type="number" step="0.5" min="0" class="form-control form-control-sm stage-end" value="4" oninput="updateStageRowDuration(this)"></div>
+                                                    <div class="col-md-3"><input type="text" class="form-control form-control-sm stage-dur bg-white" value="2 Months" readonly></div>
+                                                    <div class="col-md-1 text-center"><button type="button" class="btn btn-sm text-danger" onclick="removeStageRow(this)"><i class="fas fa-times"></i></button></div>
+                                                </div>
+                                                <!-- Row 4 -->
+                                                <div class="row g-2 mb-2 align-items-center stage-row">
+                                                    <div class="col-md-4"><input type="text" class="form-control form-control-sm stage-name" value="Flowering & Maturation" oninput="syncTimelineJson()"></div>
+                                                    <div class="col-md-2"><input type="number" step="0.5" min="0" class="form-control form-control-sm stage-start" value="4" oninput="updateStageRowDuration(this)"></div>
+                                                    <div class="col-md-2"><input type="number" step="0.5" min="0" class="form-control form-control-sm stage-end" value="5" oninput="updateStageRowDuration(this)"></div>
+                                                    <div class="col-md-3"><input type="text" class="form-control form-control-sm stage-dur bg-white" value="1 Month" readonly></div>
+                                                    <div class="col-md-1 text-center"><button type="button" class="btn btn-sm text-danger" onclick="removeStageRow(this)"><i class="fas fa-times"></i></button></div>
+                                                </div>
+                                                <!-- Row 5 -->
+                                                <div class="row g-2 mb-2 align-items-center stage-row">
+                                                    <div class="col-md-4"><input type="text" class="form-control form-control-sm stage-name" value="Harvesting, Curing & Off-take" oninput="syncTimelineJson()"></div>
+                                                    <div class="col-md-2"><input type="number" step="0.5" min="0" class="form-control form-control-sm stage-start" value="5" oninput="updateStageRowDuration(this)"></div>
+                                                    <div class="col-md-2"><input type="number" step="0.5" min="0" class="form-control form-control-sm stage-end" value="6" oninput="updateStageRowDuration(this)"></div>
+                                                    <div class="col-md-3"><input type="text" class="form-control form-control-sm stage-dur bg-white" value="1 Month" readonly></div>
+                                                    <div class="col-md-1 text-center"><button type="button" class="btn btn-sm text-danger" onclick="removeStageRow(this)"><i class="fas fa-times"></i></button></div>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center pt-2">
+                                                <button type="button" onclick="addStageRow()"
+                                                    class="btn btn-sm btn-outline-success rounded-pill px-3"
+                                                    style="font-size: 11px;"><i class="fas fa-plus me-1"></i> Add Another Stage</button>
+                                                <button type="button" onclick="resetDefaultStages()"
+                                                    class="btn btn-sm btn-link text-muted text-decoration-none"
+                                                    style="font-size: 11px;"><i class="fas fa-undo me-1"></i> Reset to Default Stages</button>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -1678,7 +2512,7 @@
                                             </div>
 
                                             <div class="form-check mb-3">
-                                                <input class="form-check-input" type="checkbox" id="wiz_terms" required checked>
+                                                <input class="form-check-input" type="checkbox" id="wiz_terms" required>
                                                 <label class="form-check-label text-dark fw-semibold" for="wiz_terms"
                                                     style="font-size: 11px;">
                                                     I agree to the terms and authorize admin physical verification.
@@ -1794,22 +2628,27 @@
                                         </div>
                                         <div class="card-body p-4">
                                             <div class="row g-3 mb-4 text-dark">
-                                                <div class="col-md-4">
+                                                <div class="col-md-3">
                                                     <div class="text-muted text-uppercase"
-                                                        style="font-size: 9px; letter-spacing: 0.5px;">TOTAL INVESTMENT ASK
-                                                    </div>
-                                                    <div class="fw-bold text-dark fs-5" id="rev_target">₹ 4,50,000</div>
+                                                        style="font-size: 9px; letter-spacing: 0.5px;">TOTAL PROJECT BUDGET</div>
+                                                    <div class="fw-bold text-dark fs-5" id="rev_total_budget">₹ 3,50,000</div>
                                                 </div>
-                                                <div class="col-md-4">
+                                                <div class="col-md-3">
                                                     <div class="text-muted text-uppercase"
-                                                        style="font-size: 9px; letter-spacing: 0.5px;">YOUR CONTRIBUTION (FARMER
-                                                        STAKE)</div>
-                                                    <div class="fw-bold text-success fs-5" id="rev_contrib">₹ 50,000 (11%)</div>
+                                                        style="font-size: 9px; letter-spacing: 0.5px;">FARMER STAKE (CONTRIBUTION)</div>
+                                                    <div class="fw-bold text-success fs-5" id="rev_contrib">₹ 50,000 (14%)</div>
                                                 </div>
-                                                <div class="col-md-4">
+                                                <div class="col-md-3">
                                                     <div class="text-muted text-uppercase"
-                                                        style="font-size: 9px; letter-spacing: 0.5px;">EXPECTED ROI</div>
-                                                    <div class="fw-bold text-dark fs-5" id="rev_roi">12 - 15%</div>
+                                                        style="font-size: 9px; letter-spacing: 0.5px;">INVESTOR FUNDING TARGET</div>
+                                                    <div class="fw-bold text-primary fs-5" id="rev_target">₹ 3,00,000</div>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <div class="text-muted text-uppercase"
+                                                        style="font-size: 9px; letter-spacing: 0.5px;">INVESTOR RETURN (ROI)</div>
+                                                    <div class="fw-bold text-dark fs-6" id="rev_roi">23.3% Cycle ROI</div>
+                                                    <div class="text-muted" style="font-size: 11px;" id="rev_annualized_roi">71.0% Annualized</div>
+                                                    <div id="rev_override_badge" style="display: none;" class="mt-1"></div>
                                                 </div>
                                             </div>
 
@@ -1847,7 +2686,71 @@
                                         </div>
                                     </div>
 
-                                    <!-- 3. Media and Documents Card (Figma Green Header) -->
+                                    <!-- 3. Yield & Farming Timeline Review Card (Figma Green Header) -->
+                                    <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden"
+                                        style="background-color: #ffffff;">
+                                        <div class="text-white px-4 py-2.5 d-flex justify-content-between align-items-center"
+                                            style="background-color: #7ba017 !important;">
+                                            <span class="fw-bold text-uppercase"
+                                                style="font-size: 12px; letter-spacing: 0.5px;">Yield & Farming Timeline</span>
+                                            <button type="button" onclick="goToWizardStep(4)"
+                                                class="btn btn-sm text-white p-0 text-decoration-none"
+                                                style="font-size: 11px;"><i class="fas fa-edit me-1"></i>Edit</button>
+                                        </div>
+                                        <div class="card-body p-4">
+                                            <div class="row g-3 mb-4 text-dark">
+                                                <div class="col-md-3">
+                                                    <div class="text-muted text-uppercase"
+                                                        style="font-size: 9px; letter-spacing: 0.5px;">EXPECTED HARVEST YIELD</div>
+                                                    <div class="fw-bold text-success fs-5" id="rev_yield_tons">18.00 Tons</div>
+                                                    <div class="text-muted" style="font-size: 11px;" id="rev_yield_kg">18,000 kg</div>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <div class="text-muted text-uppercase"
+                                                        style="font-size: 9px; letter-spacing: 0.5px;">YIELDING CYCLE</div>
+                                                    <div class="fw-bold text-dark fs-5" id="rev_period">6 Months</div>
+                                                    <div class="text-muted" style="font-size: 11px;" id="rev_cycle_days">≈ 180 Days</div>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <div class="text-muted text-uppercase"
+                                                        style="font-size: 9px; letter-spacing: 0.5px;">CULTIVATION START</div>
+                                                    <div class="fw-bold text-dark fs-6" id="rev_start_date">Nov 20, 2026</div>
+                                                    <div class="text-muted" style="font-size: 11px;">Field kick-off</div>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <div class="text-muted text-uppercase"
+                                                        style="font-size: 9px; letter-spacing: 0.5px;">PROJECTED HARVEST</div>
+                                                    <div class="fw-bold text-primary fs-6" id="rev_harvest_date">May 20, 2027</div>
+                                                    <div class="text-muted" style="font-size: 11px;">Estimated completion</div>
+                                                </div>
+                                            </div>
+
+                                            <div class="border rounded-3 p-3 bg-light">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <span class="text-muted fw-bold text-uppercase" style="font-size: 9px; letter-spacing: 0.5px;">TIMELINE STAGES BREAKDOWN</span>
+                                                    <span class="badge bg-success bg-opacity-10 text-success fw-bold" id="rev_stages_badge" style="font-size: 10px;">5 Stages</span>
+                                                </div>
+                                                <div class="table-responsive">
+                                                    <table class="table table-borderless table-sm mb-0" style="font-size: 12px;">
+                                                        <thead>
+                                                            <tr class="border-bottom text-muted">
+                                                                <th>Stage Name</th>
+                                                                <th>Schedule Window</th>
+                                                                <th class="text-end">Duration</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="rev_timeline_rows">
+                                                            <tr>
+                                                                <td colspan="3" class="text-muted text-center">Loading stages...</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 4. Media and Documents Card (Figma Green Header) -->
                                     <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden"
                                         style="background-color: #ffffff;">
                                         <div class="text-white px-4 py-2.5 d-flex justify-content-between align-items-center"
@@ -1899,22 +2802,83 @@
                     </div>
                 </div>
 
+                <!-- Farm Financials Client Engine -->
+                <script src="{{ asset('js/farm-financials.js') }}"></script>
                 <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        if (window.SoulSoilFinancials) {
+                            window.SoulSoilFinancials.init(
+                                @json(config('soulsoil.financials')),
+                                @json(\App\Models\Crop::all())
+                            );
+                        }
+                    });
+
+                    const CROP_CATEGORY_DURATIONS = {
+                        'Vegetables': 3,
+                        'Pulses': 3,
+                        'Paddy': 4,
+                        'Wheat': 5,
+                        'Fruits': 6,
+                        'Spices': 7,
+                        'Other': 6
+                    };
+
                     function selectCategory(cat, el) {
                         document.getElementById('wiz_category').value = cat;
                         document.querySelectorAll('.cat-pill').forEach(b => b.classList.remove('active', 'bg-success', 'text-white'));
-                        el.classList.add('active', 'bg-success', 'text-white');
+                        if (el) el.classList.add('active', 'bg-success', 'text-white');
+
+                        // Automatically update yielding period in months based on selected crop category!
+                        const months = CROP_CATEGORY_DURATIONS[cat] || 4;
+                        setYieldingPeriodAndRebuildStages(months);
                     }
 
-                    function addBudgetItem(purpose, amount) {
+                    function detectCropCategory(cropName) {
+                        if (!cropName) return null;
+                        const lower = cropName.trim().toLowerCase();
+                        if (lower.includes('paddy') || lower.includes('rice') || lower.includes('basmati')) return 'Paddy';
+                        if (lower.includes('wheat')) return 'Wheat';
+                        if (lower.includes('tomato') || lower.includes('chilli') || lower.includes('onion') || lower.includes('potato') || lower.includes('vegetable') || lower.includes('brinjal') || lower.includes('okra') || lower.includes('cabbage')) return 'Vegetables';
+                        if (lower.includes('pulse') || lower.includes('gram') || lower.includes('dal') || lower.includes('moong') || lower.includes('urad') || lower.includes('lentil')) return 'Pulses';
+                        if (lower.includes('fruit') || lower.includes('banana') || lower.includes('mango') || lower.includes('papaya') || lower.includes('melon') || lower.includes('berry')) return 'Fruits';
+                        if (lower.includes('spice') || lower.includes('turmeric') || lower.includes('ginger') || lower.includes('cardamom') || lower.includes('pepper')) return 'Spices';
+                        return null;
+                    }
+
+                    function addBudgetItem(purpose, qty = 1, unit = 'kg', rate = 0, amount = 0) {
                         const tbody = document.getElementById('budget_table_body');
                         const row = document.createElement('tr');
+                        const initialAmount = amount > 0 ? amount : Math.round(qty * rate);
                         row.innerHTML = `
-                                                                                                                    <td><input type="text" class="form-control form-control-sm b-purpose" value="${purpose}"></td>
-                                                                                                                    <td><input type="number" class="form-control form-control-sm b-amount" value="${amount}" oninput="calculateBudgetTotal()"></td>
-                                                                                                                    <td><button type="button" class="btn btn-sm text-danger" onclick="removeBudgetRow(this)"><i class="fas fa-trash"></i></button></td>
-                                                                                                                `;
+                            <td class="py-2.5 ps-3"><input type="text" class="form-control form-control-sm rounded-3 py-1.5 b-purpose" value="${purpose}" placeholder="Item purpose"></td>
+                            <td class="py-2.5"><input type="number" step="0.1" min="0" class="form-control form-control-sm rounded-3 py-1.5 b-qty" value="${qty}" oninput="recalcRowBudget(this)" placeholder="Qty"></td>
+                            <td class="py-2.5">
+                                <select class="form-select form-select-sm rounded-3 py-1.5 b-unit" onchange="calculateBudgetTotal()">
+                                    <option value="kg" ${unit === 'kg' ? 'selected' : ''}>kg</option>
+                                    <option value="quintal" ${unit === 'quintal' ? 'selected' : ''}>quintal</option>
+                                    <option value="bags" ${unit === 'bags' ? 'selected' : ''}>bags</option>
+                                    <option value="days" ${unit === 'days' ? 'selected' : ''}>days</option>
+                                    <option value="plot" ${unit === 'plot' ? 'selected' : ''}>plot</option>
+                                    <option value="units" ${unit === 'units' ? 'selected' : ''}>units</option>
+                                </select>
+                            </td>
+                            <td class="py-2.5"><input type="number" step="1" min="0" class="form-control form-control-sm rounded-3 py-1.5 b-rate" value="${rate}" oninput="recalcRowBudget(this)" placeholder="₹/unit"></td>
+                            <td class="py-2.5"><input type="number" class="form-control form-control-sm rounded-3 py-1.5 b-amount fw-bold text-success bg-light" value="${initialAmount}" oninput="calculateBudgetTotal()"></td>
+                            <td class="py-2.5 text-center"><button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="removeBudgetRow(this)"><i class="fas fa-trash-alt"></i></button></td>
+                        `;
                         tbody.appendChild(row);
+                        calculateBudgetTotal();
+                    }
+
+                    function recalcRowBudget(input) {
+                        const tr = input.closest('tr');
+                        const qty = parseFloat(tr.querySelector('.b-qty')?.value) || 0;
+                        const rate = parseFloat(tr.querySelector('.b-rate')?.value) || 0;
+                        const amtInput = tr.querySelector('.b-amount');
+                        if (qty > 0 && rate > 0 && amtInput) {
+                            amtInput.value = Math.round(qty * rate);
+                        }
                         calculateBudgetTotal();
                     }
 
@@ -1923,58 +2887,440 @@
                         calculateBudgetTotal();
                     }
 
-                    function calculateBudgetTotal() {
+                    function calculateBudgetTotal(updateTarget = true) {
                         let total = 0;
                         const items = [];
                         document.querySelectorAll('#budget_table_body tr').forEach(tr => {
                             const purpose = tr.querySelector('.b-purpose')?.value || '';
-                            const amount = parseFloat(tr.querySelector('.b-amount')?.value || 0);
+                            const qty = parseFloat(tr.querySelector('.b-qty')?.value) || 0;
+                            const unit = tr.querySelector('.b-unit')?.value || 'kg';
+                            const rate = parseFloat(tr.querySelector('.b-rate')?.value) || 0;
+                            let amount = parseFloat(tr.querySelector('.b-amount')?.value) || 0;
+
+                            if (qty > 0 && rate > 0 && amount <= 0) {
+                                amount = Math.round(qty * rate);
+                                const amtInput = tr.querySelector('.b-amount');
+                                if (amtInput) amtInput.value = amount;
+                            }
+
                             if (purpose && amount > 0) {
-                                items.push({ purpose: purpose, amount: amount });
+                                items.push({
+                                    purpose: purpose,
+                                    item: purpose,
+                                    quantity: qty,
+                                    qty: qty,
+                                    unit: unit,
+                                    rate: rate,
+                                    cost: amount,
+                                    amount: amount
+                                });
                                 total += amount;
                             }
                         });
+
                         const displayEl = document.getElementById('budget_total_display');
                         if (displayEl) displayEl.textContent = '₹' + total.toLocaleString('en-IN');
                         const jsonEl = document.getElementById('budget_breakdown_json');
                         if (jsonEl) jsonEl.value = JSON.stringify(items);
                         const targetInput = document.getElementById('wiz_funding_target');
-                        if (targetInput) targetInput.value = total;
+                        if (updateTarget && targetInput && total > 0) {
+                            targetInput.value = total;
+                            targetInput.dispatchEvent(new Event('input', { bubbles: true }));
+                        }
+
+                        updateAutoRoi();
+                    }
+
+                    function updateAutoRoi() {
+                        const targetInput = document.getElementById('wiz_funding_target');
+                        const totalBudget = parseFloat(targetInput?.value) || 0;
+                        const yieldInput = document.getElementById('wiz_expected_yield_kg');
+                        const priceInput = document.getElementById('wiz_expected_price_kg');
+
+                        const yieldKg = parseFloat(yieldInput?.value) || 0;
+                        const priceKg = parseFloat(priceInput?.value) || 0;
+
+                        // Unit display helpers
+                        const yieldTonsEl = document.getElementById('wiz_yield_tons_display');
+                        if (yieldTonsEl) {
+                            yieldTonsEl.textContent = `≈ ${(yieldKg / 1000).toFixed(2)} Tons`;
+                        }
+                        const priceTonEl = document.getElementById('wiz_price_ton_display');
+                        if (priceTonEl) {
+                            priceTonEl.textContent = `₹${Math.round(priceKg * 1000).toLocaleString('en-IN')} / Ton`;
+                        }
+
+                        const projectedRev = Math.round(yieldKg * priceKg);
+                        const netProfit = projectedRev - totalBudget;
+
+                        let autoRoi = 0;
+                        if (totalBudget > 0 && netProfit > 0) {
+                            autoRoi = parseFloat(((netProfit / totalBudget) * 100).toFixed(1));
+                        }
+
+                        const revEl = document.getElementById('calc_projected_revenue');
+                        if (revEl) revEl.textContent = '₹' + projectedRev.toLocaleString('en-IN');
+
+                        const deductEl = document.getElementById('calc_budget_deduct');
+                        if (deductEl) deductEl.textContent = '- ₹' + totalBudget.toLocaleString('en-IN');
+
+                        const profitEl = document.getElementById('calc_projected_profit');
+                        if (profitEl) {
+                            profitEl.textContent = (netProfit >= 0 ? '₹' : '-₹') + Math.abs(netProfit).toLocaleString('en-IN');
+                            profitEl.className = netProfit >= 0 ? 'text-success fw-bold' : 'text-danger fw-bold';
+                        }
+
+                        const badgeEl = document.getElementById('calc_auto_roi_badge');
+                        if (badgeEl) {
+                            badgeEl.textContent = (autoRoi > 0 ? autoRoi : 15) + '% ROI';
+                            badgeEl.className = autoRoi > 0 ? 'badge bg-success text-white px-2 py-1 fw-bold' : 'badge bg-secondary text-white px-2 py-1 fw-bold';
+                        }
+
+                        const roiInput = document.getElementById('wiz_roi');
+                        if (roiInput && (!roiInput.dataset.userEdited || parseFloat(roiInput.value) <= 0)) {
+                            roiInput.value = autoRoi > 0 ? autoRoi : 15;
+                        }
+                    }
+
+                    function setYieldingPeriodAndRebuildStages(months) {
+                        months = Math.max(1, Math.round(months * 10) / 10);
+                        const periodInput = document.getElementById('wiz_yielding_period');
+                        if (periodInput) {
+                            periodInput.value = months;
+                        }
+
+                        const cycleDaysHidden = document.getElementById('wiz_crop_cycle_days');
+                        if (cycleDaysHidden) {
+                            cycleDaysHidden.value = Math.round(months * 30);
+                        }
+
+                        buildDefaultStagesForPeriod(months);
+                        updateYieldTabSchedule();
+
+                        if (window.SoulSoilFinancials && typeof window.SoulSoilFinancials.recalculateAll === 'function') {
+                            window.SoulSoilFinancials.recalculateAll();
+                        }
+                    }
+
+                    function onYieldingPeriodInput() {
+                        const periodInput = document.getElementById('wiz_yielding_period');
+                        const newMonths = parseFloat(periodInput?.value) || 0;
+                        if (newMonths > 0) {
+                            const cycleDaysHidden = document.getElementById('wiz_crop_cycle_days');
+                            if (cycleDaysHidden) {
+                                cycleDaysHidden.value = Math.round(newMonths * 30);
+                            }
+
+                            // Adjust the final stage end month to match the new period!
+                            const rows = document.querySelectorAll('.stage-row');
+                            if (rows.length > 0) {
+                                const lastRow = rows[rows.length - 1];
+                                const endInput = lastRow.querySelector('.stage-end');
+                                const startInput = lastRow.querySelector('.stage-start');
+                                const durInput = lastRow.querySelector('.stage-dur');
+                                const start = parseFloat(startInput?.value) || 0;
+
+                                if (endInput && newMonths >= start) {
+                                    endInput.value = newMonths;
+                                    const dur = Math.round((newMonths - start) * 10) / 10;
+                                    if (durInput) durInput.value = dur === 1 ? '1 Month' : `${dur} Months`;
+                                }
+                            }
+
+                            recalcTotalStagesDuration(false);
+                            syncTimelineJson();
+
+                            if (window.SoulSoilFinancials && typeof window.SoulSoilFinancials.recalculateAll === 'function') {
+                                window.SoulSoilFinancials.recalculateAll();
+                            }
+                        }
+                    }
+
+                    function updateYieldTabSummary() {
+                        const yieldKg = parseFloat(document.getElementById('wiz_expected_yield_kg')?.value || 0);
+                        const priceKg = parseFloat(document.getElementById('wiz_expected_price_kg')?.value || 0);
+                        const revenue = Math.round(yieldKg * priceKg);
+                        const yieldTons = (yieldKg / 1000).toFixed(2);
+
+                        const tonsEl = document.getElementById('wiz_step4_yield_tons');
+                        if (tonsEl) tonsEl.textContent = `≈ ${yieldTons} Tons`;
+
+                        const kgEl = document.getElementById('wiz_step4_yield_kg');
+                        if (kgEl) kgEl.textContent = `${yieldKg.toLocaleString('en-IN')} kg total`;
+
+                        const priceEl = document.getElementById('wiz_step4_price_display');
+                        if (priceEl) priceEl.textContent = `₹${priceKg.toFixed(2)} / kg`;
+
+                        const priceTonEl = document.getElementById('wiz_step4_price_ton_display');
+                        if (priceTonEl) priceTonEl.textContent = `₹${Math.round(priceKg * 1000).toLocaleString('en-IN')} / Ton`;
+
+                        const revEl = document.getElementById('wiz_step4_revenue_display');
+                        if (revEl) revEl.textContent = `₹${revenue.toLocaleString('en-IN')}`;
+
+                        updateYieldTabSchedule();
+                    }
+
+                    function updateYieldTabSchedule() {
+                        const periodInput = document.getElementById('wiz_yielding_period');
+                        const periodMonths = parseFloat(periodInput?.value) || 0;
+                        const startDateInput = document.getElementById('wiz_start_date');
+                        const startVal = startDateInput?.value;
+                        const harvestDisplay = document.getElementById('wiz_projected_harvest_display');
+
+                        if (harvestDisplay) {
+                            if (startVal && periodMonths > 0) {
+                                const startDate = new Date(startVal + 'T00:00:00');
+                                if (!isNaN(startDate.getTime())) {
+                                    const harvestDate = new Date(startDate.getTime());
+                                    const wholeMonths = Math.floor(periodMonths);
+                                    const extraDays = Math.round((periodMonths - wholeMonths) * 30);
+                                    harvestDate.setMonth(harvestDate.getMonth() + wholeMonths);
+                                    if (extraDays > 0) harvestDate.setDate(harvestDate.getDate() + extraDays);
+                                    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+                                    harvestDisplay.textContent = `${harvestDate.toLocaleDateString('en-US', options)} (in ${periodMonths} Months)`;
+                                } else {
+                                    harvestDisplay.textContent = '—';
+                                }
+                            } else {
+                                harvestDisplay.textContent = '—';
+                            }
+                        }
+
+                        recalcTotalStagesDuration(false);
+                        syncTimelineJson();
+                    }
+
+                    function updateStageRowDuration(input) {
+                        const row = input.closest('.stage-row');
+                        if (!row) return;
+
+                        const startInput = row.querySelector('.stage-start');
+                        const endInput = row.querySelector('.stage-end');
+                        const durInput = row.querySelector('.stage-dur');
+
+                        let start = parseFloat(startInput?.value) || 0;
+                        let end = parseFloat(endInput?.value) || 0;
+
+                        if (end < start) {
+                            end = start;
+                            if (endInput) endInput.value = end;
+                        }
+
+                        const dur = Math.round((end - start) * 10) / 10;
+                        if (durInput) {
+                            durInput.value = dur === 1 ? '1 Month' : `${dur} Months`;
+                        }
+
+                        // Automatically update Yielding Period when stages change!
+                        recalcTotalStagesDuration(true);
+                        syncTimelineJson();
+                    }
+
+                    function recalcTotalStagesDuration(syncPeriod = true) {
+                        let maxEnd = 0;
+                        let totalDur = 0;
+                        document.querySelectorAll('.stage-row').forEach(row => {
+                            const start = parseFloat(row.querySelector('.stage-start')?.value) || 0;
+                            const end = parseFloat(row.querySelector('.stage-end')?.value) || 0;
+                            if (end > maxEnd) maxEnd = end;
+                            if (end > start) {
+                                totalDur += (end - start);
+                            }
+                        });
+
+                        maxEnd = Math.round(maxEnd * 10) / 10;
+                        totalDur = Math.round(totalDur * 10) / 10;
+                        const effectiveMonths = maxEnd > 0 ? maxEnd : totalDur;
+
+                        // AUTOMATIC SYNC: Update yielding_period automatically!
+                        if (syncPeriod && effectiveMonths > 0) {
+                            const periodInput = document.getElementById('wiz_yielding_period');
+                            if (periodInput && parseFloat(periodInput.value) !== effectiveMonths) {
+                                periodInput.value = effectiveMonths;
+                                const cycleDaysHidden = document.getElementById('wiz_crop_cycle_days');
+                                if (cycleDaysHidden) {
+                                    cycleDaysHidden.value = Math.round(effectiveMonths * 30);
+                                }
+                                if (window.SoulSoilFinancials && typeof window.SoulSoilFinancials.recalculateAll === 'function') {
+                                    window.SoulSoilFinancials.recalculateAll();
+                                }
+                            }
+                        }
+
+                        const targetMonths = parseFloat(document.getElementById('wiz_yielding_period')?.value) || effectiveMonths;
+                        const badge = document.getElementById('wiz_timeline_comparison_badge');
+                        if (badge) {
+                            badge.textContent = `Timeline: ${effectiveMonths} / ${targetMonths} Months`;
+                            if (Math.abs(effectiveMonths - targetMonths) < 0.1 && targetMonths > 0) {
+                                badge.className = 'badge bg-success text-white px-3 py-1.5 rounded-pill fw-bold';
+                            } else if (effectiveMonths > targetMonths) {
+                                badge.className = 'badge bg-danger text-white px-3 py-1.5 rounded-pill fw-bold';
+                            } else {
+                                badge.className = 'badge bg-warning text-dark px-3 py-1.5 rounded-pill fw-bold';
+                            }
+                        }
+
+                        // Update harvest date display
+                        const periodInput = document.getElementById('wiz_yielding_period');
+                        const periodMonths = parseFloat(periodInput?.value) || 0;
+                        const startDateInput = document.getElementById('wiz_start_date');
+                        const startVal = startDateInput?.value;
+                        const harvestDisplay = document.getElementById('wiz_projected_harvest_display');
+
+                        if (harvestDisplay && startVal && periodMonths > 0) {
+                            const startDate = new Date(startVal + 'T00:00:00');
+                            if (!isNaN(startDate.getTime())) {
+                                const harvestDate = new Date(startDate.getTime());
+                                const wholeMonths = Math.floor(periodMonths);
+                                const extraDays = Math.round((periodMonths - wholeMonths) * 30);
+                                harvestDate.setMonth(harvestDate.getMonth() + wholeMonths);
+                                if (extraDays > 0) harvestDate.setDate(harvestDate.getDate() + extraDays);
+                                const options = { year: 'numeric', month: 'short', day: 'numeric' };
+                                harvestDisplay.textContent = `${harvestDate.toLocaleDateString('en-US', options)} (in ${periodMonths} Months)`;
+                            }
+                        }
                     }
 
                     function addStageRow(name, start, end) {
                         const container = document.getElementById('timeline_stages_container');
+                        if (!container) return;
+
+                        if (start === undefined || end === undefined) {
+                            let lastEnd = 0;
+                            const rows = container.querySelectorAll('.stage-row');
+                            if (rows.length > 0) {
+                                const lastRow = rows[rows.length - 1];
+                                lastEnd = parseFloat(lastRow.querySelector('.stage-end')?.value) || 0;
+                            }
+                            start = lastEnd;
+                            end = Math.round((lastEnd + 1) * 10) / 10;
+                        }
+
+                        if (!name) {
+                            name = `Cultivation Stage ${container.querySelectorAll('.stage-row').length + 1}`;
+                        }
+
+                        const dur = Math.round((end - start) * 10) / 10;
                         const div = document.createElement('div');
                         div.className = 'row g-2 mb-2 align-items-center stage-row';
                         div.innerHTML = `
-                                                                                                                    <div class="col-md-4"><input type="text" class="form-control form-control-sm stage-name" value="${name}"></div>
-                                                                                                                    <div class="col-md-2"><input type="number" class="form-control form-control-sm stage-start" value="${start}"></div>
-                                                                                                                    <div class="col-md-2"><input type="number" class="form-control form-control-sm stage-end" value="${end}"></div>
-                                                                                                                    <div class="col-md-3"><input type="text" class="form-control form-control-sm stage-dur" value="${end - start} Month(s)" readonly></div>
-                                                                                                                    <div class="col-md-1"><button type="button" class="btn btn-sm text-danger" onclick="removeStageRow(this)"><i class="fas fa-times"></i></button></div>
-                                                                                                                `;
+                            <div class="col-md-4"><input type="text" class="form-control form-control-sm stage-name" value="${name}" oninput="syncTimelineJson()"></div>
+                            <div class="col-md-2"><input type="number" step="0.5" min="0" class="form-control form-control-sm stage-start" value="${start}" oninput="updateStageRowDuration(this)"></div>
+                            <div class="col-md-2"><input type="number" step="0.5" min="0" class="form-control form-control-sm stage-end" value="${end}" oninput="updateStageRowDuration(this)"></div>
+                            <div class="col-md-3"><input type="text" class="form-control form-control-sm stage-dur bg-white" value="${dur === 1 ? '1 Month' : dur + ' Months'}" readonly></div>
+                            <div class="col-md-1 text-center"><button type="button" class="btn btn-sm text-danger" onclick="removeStageRow(this)"><i class="fas fa-times"></i></button></div>
+                        `;
                         container.appendChild(div);
+
+                        // Automatically update yielding period when new stage is added!
+                        recalcTotalStagesDuration(true);
                         syncTimelineJson();
                     }
 
                     function removeStageRow(btn) {
-                        btn.closest('.stage-row').remove();
+                        const row = btn.closest('.stage-row');
+                        if (row) {
+                            row.remove();
+                            // Automatically recalculate yielding period
+                            recalcTotalStagesDuration(true);
+                            syncTimelineJson();
+                        }
+                    }
+
+                    function resetDefaultStages() {
+                        const cat = document.getElementById('wiz_category')?.value || 'Vegetables';
+                        const months = CROP_CATEGORY_DURATIONS[cat] || 4;
+                        setYieldingPeriodAndRebuildStages(months);
+                    }
+
+                    function buildDefaultStagesForPeriod(period) {
+                        const container = document.getElementById('timeline_stages_container');
+                        if (!container) return;
+
+                        period = Math.max(1, period);
+
+                        let s1_end, s2_end, s3_end, s4_end, s5_end;
+                        if (period <= 3) {
+                            s1_end = 0.5;
+                            s2_end = 1.0;
+                            s3_end = 2.0;
+                            s4_end = 2.5;
+                            s5_end = period;
+                        } else if (period <= 4) {
+                            s1_end = 0.5;
+                            s2_end = 1.0;
+                            s3_end = 2.5;
+                            s4_end = 3.5;
+                            s5_end = period;
+                        } else if (period <= 5) {
+                            s1_end = 1.0;
+                            s2_end = 1.5;
+                            s3_end = 3.0;
+                            s4_end = 4.0;
+                            s5_end = period;
+                        } else if (period <= 6) {
+                            s1_end = 1.0;
+                            s2_end = 2.0;
+                            s3_end = 4.0;
+                            s4_end = 5.0;
+                            s5_end = period;
+                        } else {
+                            s1_end = Math.round(period * 0.15 * 10) / 10;
+                            s2_end = Math.round(period * 0.30 * 10) / 10;
+                            s3_end = Math.round(period * 0.65 * 10) / 10;
+                            s4_end = Math.round(period * 0.85 * 10) / 10;
+                            s5_end = period;
+                        }
+
+                        const stages = [
+                            { name: 'Land Preparation & Soil Tillage', start: 0, end: s1_end },
+                            { name: 'Sowing, Nursery & Germination', start: s1_end, end: s2_end },
+                            { name: 'Vegetative Growth & Fertilization', start: s2_end, end: s3_end },
+                            { name: 'Flowering & Maturation', start: s3_end, end: s4_end },
+                            { name: 'Harvesting, Curing & Produce Off-take', start: s4_end, end: s5_end }
+                        ];
+
+                        let html = '';
+                        stages.forEach(st => {
+                            const dur = Math.round((st.end - st.start) * 10) / 10;
+                            const durText = dur === 1 ? '1 Month' : `${dur} Months`;
+                            html += `
+                                <div class="row g-2 mb-2 align-items-center stage-row">
+                                    <div class="col-md-4"><input type="text" class="form-control form-control-sm stage-name" value="${st.name}" oninput="syncTimelineJson()"></div>
+                                    <div class="col-md-2"><input type="number" step="0.5" min="0" class="form-control form-control-sm stage-start" value="${st.start}" oninput="updateStageRowDuration(this)"></div>
+                                    <div class="col-md-2"><input type="number" step="0.5" min="0" class="form-control form-control-sm stage-end" value="${st.end}" oninput="updateStageRowDuration(this)"></div>
+                                    <div class="col-md-3"><input type="text" class="form-control form-control-sm stage-dur bg-white" value="${durText}" readonly></div>
+                                    <div class="col-md-1 text-center"><button type="button" class="btn btn-sm text-danger" onclick="removeStageRow(this)"><i class="fas fa-times"></i></button></div>
+                                </div>
+                            `;
+                        });
+
+                        container.innerHTML = html;
+                        recalcTotalStagesDuration(false);
                         syncTimelineJson();
                     }
 
                     function syncTimelineJson() {
                         const stages = [];
                         document.querySelectorAll('.stage-row').forEach(row => {
-                            const name = row.querySelector('.stage-name')?.value || '';
-                            const start = row.querySelector('.stage-start')?.value || 0;
-                            const end = row.querySelector('.stage-end')?.value || 0;
+                            const name = row.querySelector('.stage-name')?.value?.trim() || '';
+                            const start = parseFloat(row.querySelector('.stage-start')?.value) || 0;
+                            const end = parseFloat(row.querySelector('.stage-end')?.value) || 0;
+                            const dur = Math.max(0, end - start);
                             if (name) {
-                                stages.push({ stage: name, start_month: start, end_month: end });
+                                stages.push({
+                                    stage: name,
+                                    start_month: start,
+                                    end_month: end,
+                                    duration_months: dur
+                                });
                             }
                         });
-                        document.getElementById('farming_timeline_json').value = JSON.stringify(stages);
+                        const hidden = document.getElementById('farming_timeline_json');
+                        if (hidden) {
+                            hidden.value = JSON.stringify(stages);
+                        }
                     }
-
                     let currentWizardStep = 1;
 
                     function validateWizardStep(stepNum) {
@@ -2009,7 +3355,9 @@
                             const roi = document.getElementById('wiz_roi');
 
                             [target, contrib, roi].forEach(input => {
-                                if (!input || !input.value.trim() || parseFloat(input.value) < 0) {
+                                const val = parseFloat(input?.value);
+                                const invalidVal = input === target ? (isNaN(val) || val <= 0) : (isNaN(val) || val < 0);
+                                if (!input || !input.value.trim() || invalidVal) {
                                     isValid = false;
                                     input?.classList.add('is-invalid');
                                     if (!firstInvalid) firstInvalid = input;
@@ -2017,6 +3365,28 @@
                                     input?.classList.remove('is-invalid');
                                 }
                             });
+                        }
+
+                        // Validate Step 4: Yield & Timeline
+                        if (stepNum === 4) {
+                            const period = document.getElementById('wiz_yielding_period');
+                            const startDate = document.getElementById('wiz_start_date');
+
+                            if (!period || !period.value.trim() || parseInt(period.value, 10) <= 0) {
+                                isValid = false;
+                                period?.classList.add('is-invalid');
+                                if (!firstInvalid) firstInvalid = period;
+                            } else {
+                                period?.classList.remove('is-invalid');
+                            }
+
+                            if (!startDate || !startDate.value.trim()) {
+                                isValid = false;
+                                startDate?.classList.add('is-invalid');
+                                if (!firstInvalid) firstInvalid = startDate;
+                            } else {
+                                startDate?.classList.remove('is-invalid');
+                            }
                         }
 
                         // Validate Step 5: Investment Limits
@@ -2096,7 +3466,7 @@
                         currentWizardStep = step;
 
                         syncTimelineJson();
-                        calculateBudgetTotal();
+                        calculateBudgetTotal(false);
 
                         // Hide all panes
                         document.querySelectorAll('.wizard-step-pane').forEach(el => el.style.display = 'none');
@@ -2120,6 +3490,10 @@
                         }
 
                         // Populate Step 5 Investment Context dynamically
+                        if (step === 4) {
+                            updateYieldTabSummary();
+                        }
+
                         if (step === 5) {
                             populateStep5Review();
                         }
@@ -2144,11 +3518,17 @@
                         const crop = document.getElementById('wiz_primary_crop')?.value || 'Not Specified';
                         const secCrop = document.getElementById('wiz_secondary_crop')?.value || 'None (Single Crop)';
                         const location = document.getElementById('wiz_location')?.value || 'Not Specified';
+                        
+                        const totalBudget = parseFloat(document.getElementById('wiz_total_budget')?.value || 0);
                         const targetVal = parseFloat(document.getElementById('wiz_funding_target')?.value || 0);
                         const contribVal = parseFloat(document.getElementById('wiz_your_contribution')?.value || 0);
-                        const roi = document.getElementById('wiz_roi')?.value || '0';
+                        const calculatedRoi = parseFloat(document.getElementById('wiz_calculated_roi')?.value || 0);
+                        const annualizedRoi = parseFloat(document.getElementById('wiz_annualized_roi')?.value || 0);
+                        const activeRoi = document.getElementById('wiz_roi')?.value || '0';
+                        const isOverridden = document.getElementById('wiz_is_roi_overridden')?.checked;
+                        const overrideReason = document.getElementById('wiz_override_reason')?.value || '';
 
-                        const pct = targetVal > 0 ? Math.round((contribVal / targetVal) * 100) : 0;
+                        const pct = totalBudget > 0 ? Math.round((contribVal / totalBudget) * 100) : 0;
 
                         if (document.getElementById('rev_name')) document.getElementById('rev_name').textContent = name;
                         if (document.getElementById('rev_acres')) document.getElementById('rev_acres').textContent = acres + ' Acres';
@@ -2157,18 +3537,37 @@
                         if (document.getElementById('rev_secondary_crop')) document.getElementById('rev_secondary_crop').textContent = secCrop;
                         if (document.getElementById('rev_location')) document.getElementById('rev_location').textContent = location;
 
+                        if (document.getElementById('rev_total_budget')) document.getElementById('rev_total_budget').textContent = '₹ ' + Number(totalBudget).toLocaleString('en-IN');
                         if (document.getElementById('rev_target')) document.getElementById('rev_target').textContent = '₹ ' + Number(targetVal).toLocaleString('en-IN');
                         if (document.getElementById('rev_contrib')) document.getElementById('rev_contrib').textContent = '₹ ' + Number(contribVal).toLocaleString('en-IN') + ' (' + pct + '%)';
-                        if (document.getElementById('rev_roi')) document.getElementById('rev_roi').textContent = roi + '%';
+                        if (document.getElementById('rev_roi')) {
+                            document.getElementById('rev_roi').textContent = activeRoi + '% (Cycle ROI)';
+                        }
+                        if (document.getElementById('rev_annualized_roi')) {
+                            document.getElementById('rev_annualized_roi').textContent = annualizedRoi + '% Annualized';
+                        }
+                        const overrideBadgeEl = document.getElementById('rev_override_badge');
+                        if (overrideBadgeEl) {
+                            if (isOverridden) {
+                                overrideBadgeEl.innerHTML = `<span class="badge bg-warning text-dark"><i class="fas fa-user-shield me-1"></i>Overridden from ${calculatedRoi}% (Reason: ${overrideReason || 'Admin specified'})</span>`;
+                                overrideBadgeEl.style.display = 'block';
+                            } else {
+                                overrideBadgeEl.style.display = 'none';
+                            }
+                        }
 
                         // Sync budget allocation rows
                         const budgetRows = [];
                         let budgetTotal = 0;
                         document.querySelectorAll('#budget_table_body tr').forEach(tr => {
                             const purpose = tr.querySelector('.b-purpose')?.value || '';
+                            const qty = tr.querySelector('.b-qty')?.value || '';
+                            const unit = tr.querySelector('.b-unit')?.value || 'kg';
+                            const rate = tr.querySelector('.b-rate')?.value || '';
                             const amount = parseFloat(tr.querySelector('.b-amount')?.value || 0);
                             if (purpose && amount > 0) {
-                                budgetRows.push(`<tr><td>${purpose}</td><td class="text-end fw-semibold">₹ ${Number(amount).toLocaleString('en-IN')}</td></tr>`);
+                                const unitBadge = (qty && rate) ? `<span class="badge bg-light text-secondary border ms-1" style="font-size: 10px;">${qty} ${unit} @ ₹${rate}</span>` : '';
+                                budgetRows.push(`<tr><td>${purpose} ${unitBadge}</td><td class="text-end fw-semibold">₹ ${Number(amount).toLocaleString('en-IN')}</td></tr>`);
                                 budgetTotal += amount;
                             }
                         });
@@ -2177,6 +3576,56 @@
                         }
                         if (document.getElementById('rev_budget_total')) {
                             document.getElementById('rev_budget_total').textContent = '₹ ' + Number(budgetTotal).toLocaleString('en-IN');
+                        }
+
+                        // Sync Step 4 Yield & Timeline Review
+                        const revYieldTons = document.getElementById('rev_yield_tons');
+                        const revYieldKg = document.getElementById('rev_yield_kg');
+                        const revPeriod = document.getElementById('rev_period');
+                        const revCycleDays = document.getElementById('rev_cycle_days');
+                        const revStartDate = document.getElementById('rev_start_date');
+                        const revHarvestDate = document.getElementById('rev_harvest_date');
+
+                        const yieldKgVal = parseFloat(document.getElementById('wiz_expected_yield_kg')?.value || 0);
+                        const periodMonthsVal = parseInt(document.getElementById('wiz_yielding_period')?.value, 10) || 6;
+                        const startVal = document.getElementById('wiz_start_date')?.value || '';
+
+                        if (revYieldTons) revYieldTons.textContent = (yieldKgVal / 1000).toFixed(2) + ' Tons';
+                        if (revYieldKg) revYieldKg.textContent = Number(yieldKgVal).toLocaleString('en-IN') + ' kg';
+                        if (revPeriod) revPeriod.textContent = periodMonthsVal + ' Months';
+                        if (revCycleDays) revCycleDays.textContent = '≈ ' + (periodMonthsVal * 30) + ' Days';
+
+                        if (revStartDate && startVal) {
+                            const sDate = new Date(startVal + 'T00:00:00');
+                            if (!isNaN(sDate.getTime())) {
+                                revStartDate.textContent = sDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                            } else {
+                                revStartDate.textContent = startVal;
+                            }
+                        }
+
+                        const projectedDateEl = document.getElementById('wiz_projected_harvest_display');
+                        if (revHarvestDate) {
+                            revHarvestDate.textContent = projectedDateEl ? projectedDateEl.textContent : '—';
+                        }
+
+                        const timelineRows = [];
+                        let stageCount = 0;
+                        document.querySelectorAll('.stage-row').forEach(row => {
+                            const name = row.querySelector('.stage-name')?.value?.trim();
+                            const start = row.querySelector('.stage-start')?.value;
+                            const end = row.querySelector('.stage-end')?.value;
+                            const dur = row.querySelector('.stage-dur')?.value;
+                            if (name) {
+                                stageCount++;
+                                timelineRows.push(`<tr><td><span class="badge bg-light text-dark border me-1">${stageCount}</span> ${name}</td><td>Month ${start} → Month ${end}</td><td class="text-end fw-semibold text-success">${dur}</td></tr>`);
+                            }
+                        });
+                        if (document.getElementById('rev_timeline_rows')) {
+                            document.getElementById('rev_timeline_rows').innerHTML = timelineRows.length ? timelineRows.join('') : '<tr><td colspan="3" class="text-muted text-center">No stages added</td></tr>';
+                        }
+                        if (document.getElementById('rev_stages_badge')) {
+                            document.getElementById('rev_stages_badge').textContent = `${stageCount} Stages (${periodMonthsVal} Months)`;
                         }
 
                         // Sync uploaded photo previews dynamically!
@@ -2191,6 +3640,34 @@
                             if (document.getElementById('rev_photos_grid')) document.getElementById('rev_photos_grid').innerHTML = html;
                         }
                     }
+
+                    document.addEventListener('DOMContentLoaded', function() {
+                        // Listen for crop name typing to auto-detect category and yielding months
+                        const primaryCropInput = document.getElementById('wiz_primary_crop');
+                        if (primaryCropInput) {
+                            primaryCropInput.addEventListener('input', function() {
+                                const detectedCat = detectCropCategory(this.value);
+                                if (detectedCat) {
+                                    const catBtn = Array.from(document.querySelectorAll('.cat-pill')).find(b => b.textContent.trim().toLowerCase() === detectedCat.toLowerCase());
+                                    if (catBtn) selectCategory(detectedCat, catBtn);
+                                }
+                            });
+                        }
+
+                        // Initialize yielding period from current category if empty or default
+                        const activeCatBtn = document.querySelector('.cat-pill.active');
+                        const cat = activeCatBtn ? activeCatBtn.textContent.trim() : (document.getElementById('wiz_category')?.value || 'Vegetables');
+                        const defaultMonths = CROP_CATEGORY_DURATIONS[cat] || 3;
+                        const periodInput = document.getElementById('wiz_yielding_period');
+                        if (periodInput && (!periodInput.value || periodInput.value === '6')) {
+                            periodInput.value = defaultMonths;
+                            buildDefaultStagesForPeriod(defaultMonths);
+                        }
+
+                        updateYieldTabSummary();
+                        recalcTotalStagesDuration(false);
+                        syncTimelineJson();
+                    });
                 </script>
 
                 <!-- 4. Farm Updates Tab (Figma Exact) -->
@@ -2260,7 +3737,7 @@
                     <!-- Dynamic Farm Feed Cards (100% Dynamic) -->
                     <?php
             $displayFarms = $myFarms->count() > 0 ? $myFarms : $availableFarms;
-                                                                                                            ?>
+                                                                                                                                    ?>
 
                     @forelse($displayFarms as $farmItem)
                         <div class="mb-4">
@@ -2353,8 +3830,8 @@
 
                     <!-- Harvest Cards Grid (Direct DB Fetch) -->
                     <?php 
-                                                                                                                $allFarmsList = \App\Models\Farm::with(['farmer.user', 'updates', 'harvests'])->latest()->get();
-                                                                                                            ?>
+                                                                                                                                        $allFarmsList = \App\Models\Farm::with(['farmer.user', 'updates', 'harvests'])->latest()->get();
+                                                                                                                                    ?>
 
                     <div class="row g-4 mb-4">
                         @forelse($allFarmsList as $farmItem)
@@ -2384,7 +3861,11 @@
                                                     <div class="text-muted fw-bold text-uppercase" style="font-size: 9px;">Yield
                                                         Tonnage</div>
                                                     <div class="fw-bold text-dark" style="font-size: 12px;">
-                                                        {{ $farmItem->expected_yield ?? '12.5' }} Tons
+                                                        @php
+                                                            $dispTons = $farmItem->harvests->where('status', '!=', 'gallery_photo')->first()?->actual_yield
+                                                                ?? ($farmItem->projected_yield_kg ? round($farmItem->projected_yield_kg / 1000, 2) : ($farmItem->expected_yield ?? 12.5));
+                                                        @endphp
+                                                        {{ number_format((float) $dispTons, 2) }} Tons
                                                     </div>
                                                 </div>
                                             </div>
@@ -2858,7 +4339,7 @@
                     $estYield += $farm->harvests->sum('estimated_yield');
                 }
             }
-                                                                                        ?>
+                                                                                                                ?>
                                 <h3 class="fw-bold text-dark mb-2">
                                     {{ $estYield > 0 ? number_format($estYield) . ' Tons' : 'Pending' }}
                                 </h3>
@@ -2888,8 +4369,10 @@
                                             Raised</th>
                                         <th class="py-3 border-0 fw-semibold text-uppercase" style="font-size: 10px;">Expected
                                             ROI</th>
-                                        <th class="pe-3 py-3 rounded-end border-0 fw-semibold text-uppercase text-end"
+                                        <th class="py-3 border-0 fw-semibold text-uppercase text-center"
                                             style="font-size: 10px;">Verification Status</th>
+                                        <th class="pe-3 py-3 rounded-end border-0 fw-semibold text-uppercase text-end"
+                                            style="font-size: 10px;">Portfolio Tracking</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -2901,19 +4384,31 @@
                                             <td class="py-3 text-success fw-semibold">₹ {{ number_format($farm->funding_raised) }}
                                             </td>
                                             <td class="py-3 fw-bold">{{ $farm->expected_roi ?? 0 }}%</td>
-                                            <td class="pe-3 py-3 text-end">
+                                            <td class="py-3 text-center">
                                                 <span
-                                                    class="badge bg-{{ $farm->status === 'approved' ? 'success' : 'warning' }} bg-opacity-10 text-{{ $farm->status === 'approved' ? 'success' : 'warning' }} px-3 py-2 rounded-pill fw-bold"
+                                                    class="badge bg-{{ $farm->status === 'completed' ? 'dark text-white' : ($farm->status === 'approved' ? 'success' : 'warning') }} bg-opacity-10 text-{{ $farm->status === 'completed' ? 'white' : ($farm->status === 'approved' ? 'success' : 'warning') }} px-3 py-2 rounded-pill fw-bold"
                                                     style="font-size: 10px;">
                                                     <i
-                                                        class="fas fa-{{ $farm->status === 'approved' ? 'check-circle' : 'clock' }} me-1"></i>
-                                                    {{ strtoupper($farm->status) }}
+                                                        class="fas fa-{{ $farm->status === 'completed' ? 'check-double text-white' : ($farm->status === 'approved' ? 'check-circle' : 'clock') }} me-1"></i>
+                                                    {{ strtoupper($farm->status === 'completed' ? 'FINALIZED' : $farm->status) }}
                                                 </span>
+                                            </td>
+                                            <td class="pe-3 py-3 text-end">
+                                                <a href="{{ route('investor.portfolio.track', $farm->id) }}"
+                                                    class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 fw-bold shadow-sm"
+                                                    style="font-size: 11px;">
+                                                    <i class="fas fa-chart-line me-1"></i> Track Farm
+                                                </a>
+                                                <a href="{{ route('admin.farms.show', $farm->id) }}"
+                                                    class="btn btn-sm btn-light rounded-pill px-2.5 py-1 text-muted border ms-1"
+                                                    style="font-size: 11px;" title="Farm Management">
+                                                    <i class="fas fa-external-link-alt"></i>
+                                                </a>
                                             </td>
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="6" class="text-center py-5 text-muted">
+                                            <td colspan="7" class="text-center py-5 text-muted">
                                                 <i class="fas fa-seedling fa-3x mb-3 opacity-25"></i>
                                                 <p class="mb-0">No farms registered yet.</p>
                                             </td>
@@ -2941,8 +4436,10 @@
                                             Amount</th>
                                         <th class="py-3 border-0 fw-semibold text-uppercase" style="font-size: 10px;">Equity
                                             Share</th>
-                                        <th class="pe-3 py-3 rounded-end border-0 fw-semibold text-uppercase text-end"
+                                        <th class="py-3 border-0 fw-semibold text-uppercase text-center"
                                             style="font-size: 10px;">Status</th>
+                                        <th class="pe-3 py-3 rounded-end border-0 fw-semibold text-uppercase text-end"
+                                            style="font-size: 10px;">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -2960,17 +4457,24 @@
                                             <td class="py-3 text-muted">{{ $inv->farm->name }}</td>
                                             <td class="py-3 text-success fw-bold">₹ {{ number_format($inv->amount) }}</td>
                                             <td class="py-3 text-primary fw-bold">{{ number_format($inv->equity_share, 1) }}%</td>
-                                            <td class="pe-3 py-3 text-end">
+                                            <td class="py-3 text-center">
                                                 <span
                                                     class="badge bg-{{ $inv->status === 'approved' ? 'success' : 'warning' }} bg-opacity-10 text-{{ $inv->status === 'approved' ? 'success' : 'warning' }} px-3 py-2 rounded-pill fw-bold"
                                                     style="font-size: 10px;">
                                                     {{ strtoupper($inv->status) }}
                                                 </span>
                                             </td>
+                                            <td class="pe-3 py-3 text-end">
+                                                <a href="{{ route('investor.portfolio.track', $inv->farm_id) }}"
+                                                    class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-1 fw-bold"
+                                                    style="font-size: 10px;">
+                                                    <i class="fas fa-eye me-1"></i> Track Position
+                                                </a>
+                                            </td>
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="5" class="text-center py-4 text-muted">No investments have been made in
+                                            <td colspan="6" class="text-center py-4 text-muted">No investments have been made in
                                                 your farms yet.</td>
                                         </tr>
                                     @endforelse
@@ -3063,25 +4567,288 @@
                     </div>
 
                     <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
-                        <h6 class="fw-bold text-dark mb-3">Security & Password</h6>
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label text-muted small fw-bold">Current Password</label>
-                                <input type="password" class="form-control rounded-3" placeholder="••••••••">
+                        <h6 class="fw-bold text-dark mb-3"><i class="fas fa-shield-alt text-success me-2"></i>Security & Change Password</h6>
+                        <form action="{{ route('password.change') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="email" value="{{ auth()->user()->email }}">
+                            @if($errors->changePassword->any())
+                                <div class="alert alert-danger p-2 mb-3 small">
+                                    <ul class="mb-0">
+                                        @foreach($errors->changePassword->all() as $err)
+                                            <li>{{ $err }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label text-muted small fw-bold">Current Password <span class="text-danger">*</span></label>
+                                    <input type="password" name="current_password" class="form-control rounded-3" placeholder="••••••••" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label text-muted small fw-bold">New Password <span class="text-danger">*</span></label>
+                                    <input type="password" name="new_password" class="form-control rounded-3" placeholder="Min. 8 characters" minlength="8" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label text-muted small fw-bold">Confirm New Password <span class="text-danger">*</span></label>
+                                    <input type="password" name="new_password_confirmation" class="form-control rounded-3" placeholder="Confirm new password" minlength="8" required>
+                                </div>
+                                <div class="col-12 text-end">
+                                    <button type="submit" class="btn btn-success rounded-pill px-4 py-2 fw-semibold shadow-sm"
+                                        style="font-size: 11px; background-color: #064e3b; border-color: #064e3b;">
+                                        <i class="fas fa-key me-1"></i> Update Password
+                                    </button>
+                                </div>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label text-muted small fw-bold">New Password</label>
-                                <input type="password" class="form-control rounded-3" placeholder="••••••••">
-                            </div>
-                            <div class="col-12 text-end">
-                                <button type="button" class="btn btn-success rounded-pill px-4 py-2 fw-semibold"
-                                    style="font-size: 11px;">Update Password</button>
-                            </div>
-                        </div>
+                        </form>
                     </div>
                 </div>
 
             </div>
+
+            <!-- Farmer Farm Details Quick-View Modals (Outside .tab-content so they always popup cleanly) -->
+            @foreach($myFarms ?? [] as $farm)
+                @php
+                    $mTarget = $farm->funding_target > 0 ? $farm->funding_target : 1;
+                    $mRaised = $farm->funding_raised ?? 0;
+                    $mPerc = min(100, round(($mRaised / $mTarget) * 100));
+                    $mBudget = is_array($farm->budget_breakdown) ? $farm->budget_breakdown : (json_decode($farm->budget_breakdown ?? '[]', true) ?: []);
+                    $mTimeline = is_array($farm->farming_timeline) ? $farm->farming_timeline : (json_decode($farm->farming_timeline ?? '[]', true) ?: []);
+                @endphp
+                <div class="modal fade text-start" id="farmDetailsModal{{ $farm->id }}" tabindex="-1"
+                    aria-labelledby="farmDetailsModalLabel{{ $farm->id }}" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+                        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                            <div class="modal-header border-0 text-white p-4"
+                                style="background: linear-gradient(135deg, #065f46 0%, #047857 100%);">
+                                <div>
+                                    <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                                        <h5 class="modal-title fw-bold mb-0" id="farmDetailsModalLabel{{ $farm->id }}">
+                                            {{ $farm->name }}
+                                        </h5>
+                                        @if($farm->status === 'approved')
+                                            <span class="badge bg-light text-success rounded-pill px-2.5 py-1 fw-bold"
+                                                style="font-size: 10px;">Approved</span>
+                                        @elseif($farm->status === 'completed')
+                                            <span class="badge bg-dark text-white rounded-pill px-2.5 py-1 fw-bold"
+                                                style="font-size: 10px;">Completed</span>
+                                        @elseif($farm->status === 'rejected')
+                                            <span class="badge bg-danger text-white rounded-pill px-2.5 py-1 fw-bold"
+                                                style="font-size: 10px;">Rejected</span>
+                                        @else
+                                            <span class="badge bg-warning text-dark rounded-pill px-2.5 py-1 fw-bold"
+                                                style="font-size: 10px;">Pending Review</span>
+                                        @endif
+                                    </div>
+                                    <div class="text-white-50" style="font-size: 11px;">
+                                        #FARM-{{ str_pad($farm->id, 4, '0', STR_PAD_LEFT) }} &bull;
+                                        <i class="fas fa-map-marker-alt me-1"></i>{{ $farm->location ?? 'Kerala' }}
+                                    </div>
+                                </div>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                            </div>
+
+                            <div class="modal-body p-4 bg-light">
+                                @if(session('submitted_farm_id') == $farm->id)
+                                    <div class="alert alert-success border-0 rounded-3 d-flex align-items-center gap-2 mb-3 py-2.5 px-3"
+                                        style="font-size: 12px;">
+                                        <i class="fas fa-check-circle fs-5"></i>
+                                        <div><strong>Application Submitted!</strong> Your farm plot details are below and awaiting admin verification.</div>
+                                    </div>
+                                @endif
+
+                                @php
+                                    $mPhotos = is_array($farm->additional_photos) ? $farm->additional_photos : (json_decode($farm->additional_photos ?? '[]', true) ?: []);
+                                    $mDocs = is_array($farm->additional_documents) ? $farm->additional_documents : (json_decode($farm->additional_documents ?? '[]', true) ?: []);
+                                @endphp
+
+                                <!-- Cover Photo -->
+                                <div class="rounded-4 overflow-hidden mb-3 shadow-sm" style="height: 180px;">
+                                    @if($farm->farm_photo_path)
+                                        <img src="{{ asset('storage/' . $farm->farm_photo_path) }}" class="w-100 h-100"
+                                            style="object-fit: cover;">
+                                    @elseif(count($mPhotos) > 0)
+                                        <img src="{{ asset('storage/' . $mPhotos[0]) }}" class="w-100 h-100"
+                                            style="object-fit: cover;">
+                                    @else
+                                        <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=900&auto=format&fit=crop"
+                                            class="w-100 h-100" style="object-fit: cover;">
+                                    @endif
+                                </div>
+
+                                @if(count($mPhotos) > 1)
+                                    <div class="d-flex gap-2 flex-wrap mb-3">
+                                        @foreach($mPhotos as $pPath)
+                                            <a href="{{ asset('storage/' . $pPath) }}" target="_blank" class="d-inline-block rounded-3 overflow-hidden border" style="width: 64px; height: 48px;">
+                                                <img src="{{ asset('storage/' . $pPath) }}" class="w-100 h-100" style="object-fit: cover;">
+                                            </a>
+                                        @endforeach
+                                    </div>
+                                @endif
+
+                                <!-- Core Details Grid -->
+                                <div class="row g-2 mb-3">
+                                    <div class="col-6 col-md-4">
+                                        <div class="bg-white rounded-3 p-3 border h-100">
+                                            <div class="text-muted text-uppercase fw-bold" style="font-size: 9px;">Primary Crop</div>
+                                            <div class="fw-bold text-dark mt-1" style="font-size: 13px;">{{ $farm->primary_crop }}</div>
+                                            @if($farm->secondary_crop)
+                                                <div class="text-muted" style="font-size: 10px;">Secondary: {{ $farm->secondary_crop }}</div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-4">
+                                        <div class="bg-white rounded-3 p-3 border h-100">
+                                            <div class="text-muted text-uppercase fw-bold" style="font-size: 9px;">Total Area</div>
+                                            <div class="fw-bold text-dark mt-1" style="font-size: 13px;">{{ $farm->total_acres }} Acres</div>
+                                            <div class="text-muted" style="font-size: 10px;">Category: {{ $farm->listing_category ?? 'General' }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-4">
+                                        <div class="bg-white rounded-3 p-3 border h-100">
+                                            <div class="text-muted text-uppercase fw-bold" style="font-size: 9px;">Expected ROI & Cycle</div>
+                                            <div class="fw-bold text-success mt-1" style="font-size: 13px;">{{ $farm->expected_roi ?? 15 }}% ROI</div>
+                                            <div class="text-muted" style="font-size: 10px;">{{ $farm->yielding_period ?? 6 }} Months</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-4">
+                                        <div class="bg-white rounded-3 p-3 border h-100">
+                                            <div class="text-muted text-uppercase fw-bold" style="font-size: 9px;">Funding Target</div>
+                                            <div class="fw-bold text-dark mt-1" style="font-size: 13px;">₹{{ number_format($farm->funding_target ?? 0) }}</div>
+                                            <div class="text-muted" style="font-size: 10px;">Your Stake: ₹{{ number_format($farm->your_contribution ?? 0) }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-4">
+                                        <div class="bg-white rounded-3 p-3 border h-100">
+                                            <div class="text-muted text-uppercase fw-bold" style="font-size: 9px;">Investment Limits</div>
+                                            <div class="fw-bold text-dark mt-1" style="font-size: 12px;">
+                                                ₹{{ number_format($farm->min_investment ?? 0) }} – ₹{{ number_format($farm->max_investment ?? 0) }}
+                                            </div>
+                                            <div class="text-muted" style="font-size: 10px;">Investors: {{ $farm->investor_count ?? 0 }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-4">
+                                        <div class="bg-white rounded-3 p-3 border h-100">
+                                            <div class="text-muted text-uppercase fw-bold" style="font-size: 9px;">Expected Start Date</div>
+                                            <div class="fw-bold text-dark mt-1" style="font-size: 13px;">
+                                                {{ $farm->expected_start_date ? \Carbon\Carbon::parse($farm->expected_start_date)->format('d M Y') : 'N/A' }}
+                                            </div>
+                                            <div class="text-muted" style="font-size: 10px;">Funding: {{ ucfirst($farm->funding_status ?? 'closed') }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Funding Progress -->
+                                <div class="bg-white rounded-3 p-3 border mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-1" style="font-size: 11px;">
+                                        <span class="text-muted fw-semibold">Funding Progress ({{ $mPerc }}%)</span>
+                                        <span class="fw-bold text-success">₹{{ number_format($mRaised) }} / ₹{{ number_format($mTarget) }}</span>
+                                    </div>
+                                    <div class="progress rounded-pill" style="height: 7px;">
+                                        <div class="progress-bar bg-success rounded-pill" style="width: {{ $mPerc }}%;"></div>
+                                    </div>
+                                </div>
+
+                                @if(count($mBudget) > 0)
+                                    <div class="bg-white rounded-3 p-3 border mb-3">
+                                        <h6 class="fw-bold text-dark mb-2" style="font-size: 12px;">Budget Breakdown</h6>
+                                        <div class="table-responsive">
+                                            <table class="table table-sm mb-0" style="font-size: 11px;">
+                                                <tbody>
+                                                    @php $mBudgetSum = 0; @endphp
+                                                    @foreach($mBudget as $item)
+                                                        @php $amt = (float)($item['amount'] ?? 0); $mBudgetSum += $amt; @endphp
+                                                        <tr>
+                                                            <td class="text-muted">{{ $item['purpose'] ?? 'Item' }}</td>
+                                                            <td class="text-end fw-semibold text-dark">₹{{ number_format($amt) }}</td>
+                                                        </tr>
+                                                    @endforeach
+                                                    <tr class="table-light fw-bold">
+                                                        <td>Total Budget</td>
+                                                        <td class="text-end text-success">₹{{ number_format($mBudgetSum) }}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                @endif
+
+                                @if(count($mTimeline) > 0)
+                                    <div class="bg-white rounded-3 p-3 border mb-3">
+                                        <h6 class="fw-bold text-dark mb-2" style="font-size: 12px;">Farming Timeline</h6>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            @foreach($mTimeline as $stage)
+                                                <span class="badge bg-light text-dark border rounded-pill px-3 py-1.5" style="font-size: 10px;">
+                                                    {{ $stage['stage'] ?? 'Stage' }} (M{{ $stage['start_month'] ?? 0 }}–M{{ $stage['end_month'] ?? 0 }})
+                                                </span>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
+
+                                @if(count($mDocs) > 0)
+                                    <div class="bg-white rounded-3 p-3 border mb-3">
+                                        <h6 class="fw-bold text-dark mb-2" style="font-size: 12px;">Uploaded Documents</h6>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            @foreach($mDocs as $idx => $docPath)
+                                                <a href="{{ asset('storage/' . $docPath) }}" target="_blank"
+                                                    class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-1" style="font-size: 11px;">
+                                                    <i class="fas fa-file-pdf text-danger me-1"></i> Document #{{ $idx + 1 }}
+                                                </a>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
+
+                                @if(!empty($farm->admin_notes))
+                                    <div class="alert alert-warning border-0 rounded-3 mb-0 py-2.5 px-3" style="font-size: 11px;">
+                                        <strong>Admin Notes:</strong> {{ $farm->admin_notes }}
+                                    </div>
+                                @endif
+                            </div>
+
+                            <div class="modal-footer border-0 bg-white px-4 py-3 d-flex justify-content-between flex-wrap gap-2">
+                                <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-semibold"
+                                    data-bs-dismiss="modal" style="font-size: 11px;">Close</button>
+                                <div class="d-flex gap-2">
+                                    <a href="{{ route('admin.farms.edit', $farm) }}"
+                                        class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold"
+                                        style="font-size: 11px;">
+                                        <i class="fas fa-edit me-1"></i> Edit Farm
+                                    </a>
+                                    <a href="{{ route('admin.farms.show', $farm) }}"
+                                        class="btn btn-success btn-sm rounded-pill px-4 fw-bold"
+                                        style="font-size: 11px;">
+                                        <i class="fas fa-external-link-alt me-1"></i> Open Full Details Page
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+
+            <script>
+                function openFarmDetailsModal(farmId) {
+                    const modalEl = document.getElementById('farmDetailsModal' + farmId);
+                    if (!modalEl) return;
+                    if (modalEl.parentElement !== document.body) {
+                        document.body.appendChild(modalEl);
+                    }
+                    if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+                    }
+                }
+            </script>
+
+            @if(session('submitted_farm_id'))
+                <script>
+                    window.addEventListener('load', function () {
+                        openFarmDetailsModal({{ (int) session('submitted_farm_id') }});
+                    });
+                </script>
+            @endif
 
 
         @else
@@ -3103,7 +4870,7 @@
                                         style="font-size: 11px;">
                                         <i class="fas fa-user-check me-1"></i> Accredited Investor Portfolio
                                     </span>
-                                    <h3 class="fw-bold mb-2 fs-2">Welcome back, {{ auth()->user()->name }}! 👋</h3>
+                                    <h3 class="fw-bold mb-2 fs-2">Welcome back, {{ auth()->user()->name }}! </h3>
                                     <p class="text-white-50 mb-0" style="font-size: 13px;">Track your active farm backings,
                                         explore verified high-yield agricultural plots, and manage your dividend payouts.</p>
                                 </div>
@@ -3323,7 +5090,7 @@
                     <div class="row g-4" id="myFarmsGridContainer">
                         @forelse($myInvestments ?? [] as $inv)
                                     <?php 
-                                                                                                                                                                                    $totalFarmInvested = \App\Models\Investment::where('user_id', auth()->id())
+                                                                                                                                                                                                                                                $totalFarmInvested = \App\Models\Investment::where('user_id', auth()->id())
                                 ->where('farm_id', $inv->farm_id)
                                 ->sum('amount');
                             $invAmount = $totalFarmInvested > 0 ? $totalFarmInvested : $inv->amount;
@@ -3333,7 +5100,7 @@
                             if ($statusKey === 'approved' || $statusKey === 'active') {
                                 $statusKey = 'growing';
                             }
-                                                                                                                                                                                ?>
+                                                                                                                                                                                                                                            ?>
                                     <div class="col-md-6 col-lg-4 my-farm-card-item" data-farm-status="{{ $statusKey }}">
                                         <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden"
                                             style="border: 1px solid #e5e7eb !important;">
@@ -3466,6 +5233,19 @@
                                                 @endif
                                                 <div class="position-absolute top-0 start-0 w-100 h-100"
                                                     style="background: linear-gradient(to top, rgba(0,0,0,0.5), transparent);"></div>
+                                                @php
+                                                    $target = $farm->funding_target > 0 ? $farm->funding_target : 1;
+                                                    $raised = $farm->funding_raised ?? 0;
+                                                    $perc = min(100, round(($raised / $target) * 100));
+                                                    $isClosed = ($farm->funding_status === 'closed' || $farm->status === 'completed' || $raised >= $target);
+                                                @endphp
+                                                @if($isClosed)
+                                                    <span
+                                                        class="position-absolute top-0 start-0 m-3 badge bg-secondary shadow-sm rounded-pill px-2.5 py-1.5 fw-bold"
+                                                        style="font-size: 10px; z-index: 2; background-color: #475569 !important;">
+                                                        <i class="fas fa-lock me-1"></i> 100% FUNDED
+                                                    </span>
+                                                @endif
                                                 <span
                                                     class="position-absolute top-0 end-0 m-3 badge bg-success shadow-sm rounded-pill px-3 py-1.5 fw-bold"
                                                     style="font-size: 10px; z-index: 2;">
@@ -3503,31 +5283,38 @@
                                                     </div>
                                                 </div>
 
-                                                <?php        $target = $farm->funding_target > 0 ? $farm->funding_target : 1;
-                            $raised = $farm->funding_raised ?? 0;
-                            $perc = min(100, round(($raised / $target) * 100)); ?>
                                                 <div class="d-flex justify-content-between align-items-center mb-1"
                                                     style="font-size: 11px;">
                                                     <span class="text-muted">Funding Raised</span>
-                                                    <span class="fw-bold text-success">₹{{ number_format($raised) }} /
+                                                    <span class="fw-bold {{ $isClosed ? 'text-secondary' : 'text-success' }}">₹{{ number_format($raised) }} /
                                                         ₹{{ number_format($target) }}</span>
                                                 </div>
                                                 <div class="progress rounded-pill mb-3" style="height: 6px;">
-                                                    <div class="progress-bar bg-success rounded-pill" role="progressbar"
+                                                    <div class="progress-bar {{ $isClosed ? 'bg-secondary' : 'bg-success' }} rounded-pill" role="progressbar"
                                                         style="width: {{ $perc }}%;"></div>
                                                 </div>
 
                                                 <div class="pt-3 border-top">
-                                                    <button type="button"
-                                                        class="btn btn-success btn-sm rounded-pill w-100 fw-bold shadow-sm py-2"
-                                                        data-bs-toggle="modal" data-bs-target="#makeInvestmentModal"
-                                                        data-farm-id="{{ $farm->id }}" data-farm-name="{{ $farm->name }}"
-                                                        data-farm-roi="{{ $farm->expected_roi ?? 18.5 }}"
-                                                        data-farm-target="{{ $farm->funding_target ?? 800000 }}"
-                                                        data-farm-min="{{ $farm->min_investment ?? 10000 }}"
-                                                        style="font-size: 12px; background-color: #064e3b; border-color: #064e3b;">
-                                                        <i class="fas fa-hand-holding-usd me-1.5"></i> Invest Now
-                                                    </button>
+                                                    @if($isClosed)
+                                                        <button type="button"
+                                                            class="btn btn-secondary btn-sm rounded-pill w-100 fw-bold py-2"
+                                                            disabled
+                                                            style="font-size: 12px; background-color: #64748b; border-color: #64748b; cursor: not-allowed; opacity: 0.85;">
+                                                            <i class="fas fa-lock me-1.5"></i> Fully Funded (Closed)
+                                                        </button>
+                                                    @else
+                                                        <button type="button"
+                                                            class="btn btn-success btn-sm rounded-pill w-100 fw-bold shadow-sm py-2"
+                                                            data-bs-toggle="modal" data-bs-target="#makeInvestmentModal"
+                                                            data-farm-id="{{ $farm->id }}" data-farm-name="{{ $farm->name }}"
+                                                            data-farm-roi="{{ $farm->expected_roi ?? 18.5 }}"
+                                                            data-farm-target="{{ $farm->funding_target ?? 800000 }}"
+                                                            data-farm-min="{{ $farm->min_investment ?? 10000 }}"
+                                                            data-farm-remaining="{{ max(0, $target - $raised) }}"
+                                                            style="font-size: 12px; background-color: #064e3b; border-color: #064e3b;">
+                                                            <i class="fas fa-hand-holding-usd me-1.5"></i> Invest Now
+                                                        </button>
+                                                    @endif
                                                 </div>
                                             </div>
                                         </div>
@@ -3855,12 +5642,21 @@
                                 <select id="dash_modal_farm_id" class="form-select form-select-lg rounded-3"
                                     style="font-size: 13px;" onchange="updateDashInvestCalc()">
                                     @foreach(($availableFarms ?? \App\Models\Farm::where('status', 'approved')->get()) as $f)
-                                        <option value="{{ $f->id }}" data-target="{{ $f->funding_target ?? 800000 }}"
+                                        @php
+                                            $fTarget = $f->funding_target > 0 ? $f->funding_target : 350000;
+                                            $fRaised = $f->funding_raised ?? 0;
+                                            $fRemaining = max(0, $fTarget - $fRaised);
+                                            $fClosed = ($f->funding_status === 'closed' || $f->status === 'completed' || $fRemaining <= 0);
+                                        @endphp
+                                        <option value="{{ $f->id }}" data-target="{{ $fTarget }}"
                                             data-roi="{{ $f->expected_roi ?? 18.5 }}"
                                             data-min="{{ $f->min_investment ?? 10000 }}"
-                                            data-max="{{ $f->max_investment ?? $f->funding_target ?? 300000 }}"
-                                            data-name="{{ $f->name }}">
-                                            {{ $f->name }} ({{ $f->primary_crop }} - {{ $f->location ?? 'Kerala' }})
+                                            data-max="{{ $fRemaining > 0 ? $fRemaining : ($f->max_investment ?? $fTarget) }}"
+                                            data-remaining="{{ $fRemaining }}"
+                                            data-closed="{{ $fClosed ? '1' : '0' }}"
+                                            data-name="{{ $f->name }}"
+                                            {{ $fClosed ? 'disabled' : '' }}>
+                                            {{ $f->name }} ({{ $f->primary_crop }} - {{ $f->location ?? 'Kerala' }}) {{ $fClosed ? '— [100% Fully Funded]' : '' }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -3919,8 +5715,9 @@
 
                     <!-- STEP 2 PANE: Payment Summary & Confirmation -->
                     <div id="inv_wizard_step2_pane" style="display: none;">
-                        <form action="" method="POST" id="dash_finalInvestForm">
+                        <form action="" method="POST" id="dash_finalInvestForm" onsubmit="event.preventDefault(); submitRazorpayPayment();">
                             @csrf
+                            <input type="hidden" name="farm_id" id="dash_finalFarmIdInput">
                             <input type="hidden" name="amount" id="dash_finalAmountInput">
                             <input type="hidden" name="payment_method" id="dash_finalPaymentMethodInput">
 
@@ -3946,7 +5743,7 @@
                                     <span
                                         class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-1.5 fw-bold"
                                         style="font-size: 11px;" id="dash_paymentSummaryGateway">
-                                        Instant UPI
+                                        Razorpay Gateway
                                     </span>
                                 </div>
 
@@ -3954,21 +5751,19 @@
                                 <div class="border rounded-4 p-4 text-center mb-4 bg-white shadow-sm"
                                     style="border-color: #e5e7eb !important;">
                                     <div class="mb-3">
-                                        <span class="badge bg-light text-dark border px-3 py-1 rounded-pill fw-bold"
+                                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-1 rounded-pill fw-bold"
                                             style="font-size: 10px;">
-                                            <i class="fas fa-lock text-success me-1"></i> 256-BIT ESCROW ENCRYPTED
+                                            <i class="fas fa-shield-check me-1"></i> SECURED BY RAZORPAY
                                         </span>
                                     </div>
 
-                                    <div class="p-3 bg-light rounded-3 d-inline-block mb-3 border">
-                                        <i class="fas fa-qrcode text-dark fa-4x mb-2 d-block"></i>
-                                        <span class="text-muted fw-bold" style="font-size: 10px;">Scan with GPay / PhonePe /
-                                            Paytm</span>
+                                    <div class="p-3 bg-light rounded-3 d-inline-block mb-3 border text-center" style="min-width: 240px;">
+                                        <div class="fw-bold text-dark fs-5 mb-1"><i class="fas fa-bolt text-warning me-1"></i> Razorpay Standard</div>
+                                        <div class="text-muted fw-bold" style="font-size: 10.5px;">UPI • GPay • PhonePe • Cards • NetBanking</div>
                                     </div>
 
                                     <p class="text-muted mb-0" style="font-size: 11px;">
-                                        Click below to complete transaction and redirect to <strong>Live Investment
-                                            Tracker</strong>.
+                                        Click below to open the <strong>Razorpay Checkout</strong> popup and complete your test payment.
                                     </p>
                                 </div>
                             </div>
@@ -3978,9 +5773,9 @@
                                     onclick="backToDashboardStep1()" style="font-size: 12px;">
                                     <i class="fas fa-arrow-left me-1"></i> Back
                                 </button>
-                                <button type="submit" class="btn btn-success rounded-pill px-4 py-2.5 fw-bold shadow-sm"
+                                <button type="button" id="dash_payRazorpayBtn" onclick="submitRazorpayPayment()" class="btn btn-success rounded-pill px-4 py-2.5 fw-bold shadow-sm"
                                     style="background-color: #064e3b; border-color: #064e3b; font-size: 13px;">
-                                    <i class="fas fa-check-circle me-1.5"></i> Pay & Complete Investment
+                                    <i class="fas fa-bolt me-1.5"></i> Pay via Razorpay
                                 </button>
                             </div>
                         </form>
@@ -3989,6 +5784,9 @@
                 </div>
             </div>
         </div>
+
+        <!-- Razorpay Standard Checkout SDK -->
+        <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
         <script>
             function updateDashInvestCalc() {
@@ -4003,13 +5801,21 @@
                 const roi = parseFloat(opt.getAttribute('data-roi')) || 18.5;
                 const minVal = parseFloat(opt.getAttribute('data-min')) || 500;
                 const maxVal = parseFloat(opt.getAttribute('data-max')) || target;
+                const remaining = opt.getAttribute('data-remaining') !== null ? parseFloat(opt.getAttribute('data-remaining')) : null;
+                const isClosed = opt.getAttribute('data-closed') === '1' || (remaining !== null && remaining <= 0);
                 const amount = parseFloat(amtInput.value) || 0;
 
                 amtInput.min = minVal;
-                amtInput.max = maxVal;
+                if (maxVal > 0) {
+                    amtInput.max = maxVal;
+                }
 
                 if (limitsLabel) {
-                    limitsLabel.innerText = `Min: ₹${minVal.toLocaleString('en-IN')} | Max Limit: ₹${maxVal.toLocaleString('en-IN')}`;
+                    if (isClosed) {
+                        limitsLabel.innerHTML = '<span class="text-danger fw-bold"><i class="fas fa-lock me-1"></i>This farm cycle is 100% funded and closed to new investments.</span>';
+                    } else {
+                        limitsLabel.innerText = `Min: ₹${minVal.toLocaleString('en-IN')} | Remaining Allocation: ₹${maxVal.toLocaleString('en-IN')}`;
+                    }
                 }
 
                 const equity = target > 0 ? ((amount / target) * 100).toFixed(2) : 0;
@@ -4027,15 +5833,29 @@
                 const payMethod = document.getElementById('dash_step1PaymentMethod');
 
                 if (!select || !select.value) {
-                    alert('Please select a farm plot.');
+                    alert('Please select an active farm plot.');
+                    return;
+                }
+
+                const opt = select.options[select.selectedIndex];
+                const isClosed = opt && (opt.disabled || opt.getAttribute('data-closed') === '1');
+                if (isClosed) {
+                    alert('This farm cycle has reached 100% funding and is currently closed to new investment pledges. Please select another open farm.');
                     return;
                 }
 
                 const farmId = select.value;
                 const amount = parseFloat(amtInput.value) || 0;
+                const minVal = parseFloat(opt?.getAttribute('data-min')) || 100;
+                const maxVal = parseFloat(opt?.getAttribute('data-max')) || Infinity;
 
-                if (amount < 100) {
-                    alert('Minimum investment amount is ₹100');
+                if (amount < minVal) {
+                    alert('Minimum investment amount is ₹' + minVal.toLocaleString('en-IN'));
+                    return;
+                }
+
+                if (amount > maxVal && maxVal > 0) {
+                    alert('Investment amount cannot exceed the remaining capacity of ₹' + maxVal.toLocaleString('en-IN'));
                     return;
                 }
 
@@ -4047,6 +5867,9 @@
                 const finalAmt = document.getElementById('dash_finalAmountInput');
                 if (finalAmt) finalAmt.value = amount;
 
+                const finalFarm = document.getElementById('dash_finalFarmIdInput');
+                if (finalFarm) finalFarm.value = farmId;
+
                 const finalPay = document.getElementById('dash_finalPaymentMethodInput');
                 if (finalPay) finalPay.value = payMethod.value;
 
@@ -4055,7 +5878,7 @@
 
                 const sumGate = document.getElementById('dash_paymentSummaryGateway');
                 if (sumGate && payMethod && payMethod.selectedIndex >= 0) {
-                    sumGate.innerText = payMethod.options[payMethod.selectedIndex].text;
+                    sumGate.innerText = 'Razorpay Gateway';
                 }
 
                 // Seamless 0ms pane switch inside the same modal
@@ -4076,6 +5899,127 @@
                 }
             }
 
+            function submitRazorpayPayment() {
+                const farmId = document.getElementById('dash_finalFarmIdInput')?.value || document.getElementById('dash_modal_farm_id')?.value;
+                const amount = parseFloat(document.getElementById('dash_finalAmountInput')?.value) || 0;
+                const payBtn = document.getElementById('dash_payRazorpayBtn');
+
+                if (!farmId || amount <= 0) {
+                    alert('Please select a valid farm and investment amount.');
+                    return;
+                }
+
+                if (payBtn) {
+                    payBtn.disabled = true;
+                    payBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1.5"></i> Opening Razorpay...';
+                }
+
+                fetch("{{ route('payment.create_order') }}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                    },
+                    body: JSON.stringify({
+                        farm_id: farmId,
+                        amount: amount
+                    })
+                })
+                .then(res => res.json())
+                .then(orderData => {
+                    if (!orderData.success) {
+                        alert('Could not initialize Razorpay order: ' + (orderData.message || 'Please check keys and amount.'));
+                        if (payBtn) {
+                            payBtn.disabled = false;
+                            payBtn.innerHTML = '<i class="fas fa-bolt me-1.5"></i> Pay via Razorpay';
+                        }
+                        return;
+                    }
+
+                    const options = {
+                        key: orderData.key,
+                        amount: orderData.amount,
+                        currency: orderData.currency,
+                        name: "SoulSoil Agriculture",
+                        description: "Farm Investment Pledge",
+                        image: "{{ asset('images/logo.png') }}",
+                        order_id: orderData.order_id,
+                        handler: function (response) {
+                            if (payBtn) {
+                                payBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1.5"></i> Verifying Payment...';
+                            }
+
+                            fetch("{{ route('payment.verify') }}", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                                },
+                                body: JSON.stringify({
+                                    razorpay_order_id: response.razorpay_order_id,
+                                    razorpay_payment_id: response.razorpay_payment_id,
+                                    razorpay_signature: response.razorpay_signature,
+                                    farm_id: farmId,
+                                    amount: amount
+                                })
+                            })
+                            .then(r => r.json())
+                            .then(result => {
+                                if (result.success) {
+                                    window.location.href = result.redirect_url;
+                                } else {
+                                    alert(result.message || 'Payment signature verification failed.');
+                                    if (payBtn) {
+                                        payBtn.disabled = false;
+                                        payBtn.innerHTML = '<i class="fas fa-bolt me-1.5"></i> Pay via Razorpay';
+                                    }
+                                }
+                            })
+                            .catch(err => {
+                                alert('Network error verifying payment.');
+                                if (payBtn) {
+                                    payBtn.disabled = false;
+                                    payBtn.innerHTML = '<i class="fas fa-bolt me-1.5"></i> Pay via Razorpay';
+                                }
+                            });
+                        },
+                        modal: {
+                            ondismiss: function () {
+                                if (payBtn) {
+                                    payBtn.disabled = false;
+                                    payBtn.innerHTML = '<i class="fas fa-bolt me-1.5"></i> Pay via Razorpay';
+                                }
+                            }
+                        },
+                        prefill: {
+                            name: "{{ auth()->user()?->name }}",
+                            email: "{{ auth()->user()?->email }}",
+                            contact: "{{ auth()->user()?->phone }}"
+                        },
+                        theme: {
+                            color: "#064e3b"
+                        }
+                    };
+
+                    const rzp = new Razorpay(options);
+                    rzp.on('payment.failed', function (resp) {
+                        alert('Payment failed: ' + (resp.error?.description || 'Transaction cancelled.'));
+                        if (payBtn) {
+                            payBtn.disabled = false;
+                            payBtn.innerHTML = '<i class="fas fa-bolt me-1.5"></i> Pay via Razorpay';
+                        }
+                    });
+                    rzp.open();
+                })
+                .catch(err => {
+                    alert('Error connecting to payment gateway: ' + err.message);
+                    if (payBtn) {
+                        payBtn.disabled = false;
+                        payBtn.innerHTML = '<i class="fas fa-bolt me-1.5"></i> Pay via Razorpay';
+                    }
+                });
+            }
+
             document.addEventListener('DOMContentLoaded', function () {
                 const makeInvModal = document.getElementById('makeInvestmentModal');
                 if (makeInvModal) {
@@ -4087,11 +6031,30 @@
                                 const select = document.getElementById('dash_modal_farm_id');
                                 if (select) {
                                     select.value = farmId;
+                                    // If selected option is disabled/closed, switch to first open option
+                                    if (select.selectedIndex === -1 || select.options[select.selectedIndex]?.disabled) {
+                                        for (let i = 0; i < select.options.length; i++) {
+                                            if (!select.options[i].disabled) {
+                                                select.selectedIndex = i;
+                                                break;
+                                            }
+                                        }
+                                    }
                                     updateDashInvestCalc();
                                 }
                             }
                         }
                     });
+                }
+                // Initialize default selection to an open non-disabled farm if current is disabled
+                const initialSelect = document.getElementById('dash_modal_farm_id');
+                if (initialSelect && initialSelect.options[initialSelect.selectedIndex]?.disabled) {
+                    for (let i = 0; i < initialSelect.options.length; i++) {
+                        if (!initialSelect.options[i].disabled) {
+                            initialSelect.selectedIndex = i;
+                            break;
+                        }
+                    }
                 }
                 updateDashInvestCalc();
 
@@ -4124,6 +6087,7 @@
 
                 // Sync Funding Target (Ask Amount) to Maximum Investment and Context Ask display
                 const fundingTargetInput = document.getElementById('wiz_funding_target');
+                const minInvInput = document.getElementById('wiz_min_inv');
                 const maxInvInput = document.getElementById('wiz_max_inv');
                 const ctxAskEl = document.getElementById('ctx_ask');
 
@@ -4135,8 +6099,12 @@
                         ctxAskEl.innerText = '₹' + askVal.toLocaleString('en-IN');
                     }
 
-                    if (maxInvInput && (!maxInvInput.dataset.userEdited || parseFloat(maxInvInput.value) > askVal)) {
+                    if (maxInvInput && askVal > 0 && (!maxInvInput.dataset.userEdited || parseFloat(maxInvInput.value) > askVal)) {
                         maxInvInput.value = askVal;
+                    }
+
+                    if (minInvInput && askVal > 0 && parseFloat(minInvInput.value) > askVal) {
+                        minInvInput.value = askVal;
                     }
                 }
 
@@ -4146,7 +6114,6 @@
                     syncFundingTargetToMaxInv();
                 }
 
-                const minInvInput = document.getElementById('wiz_min_inv');
                 if (minInvInput) {
                     minInvInput.addEventListener('input', function () {
                         this.classList.remove('is-invalid');
@@ -4157,6 +6124,23 @@
                     maxInvInput.addEventListener('input', function () {
                         this.dataset.userEdited = "true";
                         this.classList.remove('is-invalid');
+                    });
+                }
+
+                // Validate all wizard steps and sync hidden JSON before final form submit
+                const addFarmForm = document.getElementById('addFarmWizardForm');
+                if (addFarmForm) {
+                    addFarmForm.addEventListener('submit', function (e) {
+                        if (typeof syncTimelineJson === 'function') syncTimelineJson();
+                        if (typeof calculateBudgetTotal === 'function') calculateBudgetTotal(false);
+
+                        for (let s = 1; s <= 5; s++) {
+                            if (typeof validateWizardStep === 'function' && !validateWizardStep(s)) {
+                                e.preventDefault();
+                                if (typeof goToWizardStep === 'function') goToWizardStep(s);
+                                return false;
+                            }
+                        }
                     });
                 }
             });

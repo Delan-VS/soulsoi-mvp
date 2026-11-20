@@ -26,7 +26,7 @@ class FarmerVerificationController extends Controller
             'email' => 'required|email|unique:users,email',
             'phone' => 'required|string|max:20',
             'address' => 'required|string',
-        ]);
+        ]); 
 
         // Create the user first
         $user = \App\Models\User::create([
@@ -62,18 +62,26 @@ class FarmerVerificationController extends Controller
     {
         $farmer->update([
             'overall_status' => 'approved',
+            'document_verification' => 'approved',
+            'bank_verification' => 'approved',
+            'reviewed_by_id' => auth()->id(),
             'reviewed_at' => now(),
         ]);
         return back()->with('success', 'Farmer approved successfully!');
     }
 
-    public function reject(Farmer $farmer)
+    public function reject(Request $request, Farmer $farmer)
     {
+        $reason = $request->input('reason') ?? $request->input('admin_notes') ?? 'Documents or bank details did not meet the verification requirements. Please review your information, make necessary corrections, and re-submit for approval.';
+
         $farmer->update([
             'overall_status' => 'rejected',
+            'document_verification' => 'rejected',
+            'admin_notes' => $reason,
+            'reviewed_by_id' => auth()->id(),
             'reviewed_at' => now(),
         ]);
-        return back()->with('success', 'Farmer rejected successfully.');
+        return back()->with('success', 'Farmer rejected successfully with reason recorded.');
     }
 
     public function download(Farmer $farmer, $encodedPath)

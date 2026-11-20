@@ -150,11 +150,63 @@
             @endphp
 
             <div class="mb-4">
-                <span class="text-secondary small fw-bold me-2">CURRENT STATUS:</span>
-                <span class="status-badge {{ $statusClass }}">{{ $statusText }}</span>
-                @if($farmer->overall_status === 'rejected' && $farmer->admin_notes)
-                    <div class="alert alert-danger mt-3">
-                        <strong>Reason for Rejection:</strong> {{ $farmer->admin_notes }}
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="text-secondary small fw-bold">CURRENT STATUS:</span>
+                    <span class="status-badge {{ $statusClass }}">{{ $statusText }}</span>
+                </div>
+
+                @if($farmer->overall_status === 'rejected')
+                    <div class="card border-0 shadow-sm rounded-3 mt-3 overflow-hidden" style="border-left: 5px solid #dc2626 !important; background: #fef2f2;">
+                        <div class="card-body p-3">
+                            <div class="d-flex align-items-start gap-3">
+                                <div class="text-danger mt-1">
+                                    <i class="fas fa-exclamation-circle fa-2x"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="fw-bold text-danger mb-1">Application Verification Rejected</h6>
+                                    <p class="text-secondary small mb-2">
+                                        Your registration documents could not be verified by the administrator. Please review the reason below, make corrections or re-upload clearer documents, and click <strong>Submit for Verification</strong>.
+                                    </p>
+                                    <div class="p-3 bg-white rounded-3 border border-danger border-opacity-25 shadow-xs">
+                                        <div class="fw-bold text-danger small mb-1">
+                                            <i class="fas fa-comment-dots me-1"></i> Reason for Rejection:
+                                        </div>
+                                        <div class="text-dark fw-semibold" style="font-size: 13.5px;">
+                                            {{ $farmer->admin_notes ?: 'Documents or bank details did not meet the verification requirements. Please review and update your information.' }}
+                                        </div>
+                                    </div>
+                                    @if($farmer->reviewed_at)
+                                        <div class="text-muted small mt-2" style="font-size: 11px;">
+                                            <i class="fas fa-clock me-1"></i> Reviewed on {{ $farmer->reviewed_at->format('M d, Y') }}
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @elseif($farmer->overall_status === 'pending' && $farmer->admin_notes)
+                    <div class="card border-0 shadow-sm rounded-3 mt-3 overflow-hidden" style="border-left: 5px solid #f59e0b !important; background: #fffbeb;">
+                        <div class="card-body p-3">
+                            <div class="d-flex align-items-start gap-3">
+                                <div class="text-warning mt-1">
+                                    <i class="fas fa-clock fa-2x"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="fw-bold text-dark mb-1">Application Under Re-Review</h6>
+                                    <p class="text-secondary small mb-2">
+                                        You have submitted updated details. Our admin team is reviewing your changes against the previous review remarks.
+                                    </p>
+                                    <div class="p-2.5 bg-white rounded-3 border border-warning border-opacity-30">
+                                        <div class="fw-bold text-dark small mb-1" style="font-size: 11.5px;">
+                                            <i class="fas fa-history text-warning me-1"></i> Previous Rejection Reason:
+                                        </div>
+                                        <div class="text-muted small">
+                                            {{ $farmer->admin_notes }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 @endif
             </div>

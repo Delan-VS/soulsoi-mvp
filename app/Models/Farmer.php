@@ -94,10 +94,14 @@ class Farmer extends Model
     public function getVerificationProgressAttribute(): int
     {
         $progress = 0;
-        if ($this->face_verification === 'completed') $progress += 25;
-        if ($this->mobile_verification === 'completed') $progress += 25;
-        if ($this->bank_verification === 'completed') $progress += 25;
-        if ($this->document_verification === 'completed') $progress += 25;
+        if ($this->face_verification === 'completed')
+            $progress += 25;
+        if ($this->mobile_verification === 'completed')
+            $progress += 25;
+        if ($this->bank_verification === 'completed')
+            $progress += 25;
+        if ($this->document_verification === 'completed')
+            $progress += 25;
         return $progress;
     }
 

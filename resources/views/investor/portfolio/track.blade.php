@@ -301,7 +301,7 @@
 <!-- Navbar placeholder (use your app's existing nav if applicable) -->
 <nav class="navbar navbar-light bg-transparent py-4">
     <div class="container text-center d-block">
-        <a href="{{ route('admin.dashboard', ['tab' => 'investments']) }}" class="btn btn-outline-dark rounded-pill px-4 position-absolute start-0 ms-4" style="border-color: rgba(0,0,0,0.2);">
+        <a href="{{ auth()->user()?->farmer ? route('admin.dashboard') . '#portfolio' : route('admin.dashboard') . '#investments' }}" class="btn btn-outline-dark rounded-pill px-4 position-absolute start-0 ms-4 shadow-sm" style="border-color: rgba(0,0,0,0.2); font-size: 13px;">
             <i class="fas fa-arrow-left me-2"></i> Back to Portfolio
         </a>
         <h4 class="mb-0 fw-bold tracking-wider" style="color: rgba(0,0,0,0.8); letter-spacing: 2px;">SOUL SOIL <span style="color: var(--accent);">TRACKER</span></h4>
@@ -329,9 +329,9 @@
                 <div class="glass-card p-4 text-center">
                     <p class="text-uppercase text-muted fw-bold mb-1" style="font-size: 12px; letter-spacing: 1px;">Current Stage</p>
                     <h3 class="fw-bold mb-3" style="color: var(--timeline-active);">{{ $investmentDetails['status'] }}</h3>
-                    <div class="bg-white rounded-pill p-2 d-inline-flex align-items-center gap-2 border" style="border-color: rgba(0,0,0,0.1) !important;">
-                        <i class="fas fa-clock text-warning ms-2"></i>
-                        <span class="fw-bold pe-2">{{ $investmentDetails['timeline']['days_to_harvest'] }} Days to Harvest</span>
+                    <div class="bg-white rounded-pill p-2 d-inline-flex align-items-center gap-2 border shadow-sm" style="border-color: rgba(0,0,0,0.1) !important;">
+                        <i class="fas fa-{{ $investmentDetails['status'] === 'Settled' ? 'check-circle text-success' : 'clock text-warning' }} ms-2"></i>
+                        <span class="fw-bold pe-2">{{ $investmentDetails['status'] === 'Settled' ? 'Cycle Completed & Settled' : $investmentDetails['timeline']['days_to_harvest'] . ' Days to Harvest' }}</span>
                     </div>
                 </div>
             </div>
@@ -426,24 +426,57 @@
             </div>
         </div>
 
-        <!-- Harvest Projections -->
+        <!-- Harvest Projections & Realization -->
         <div class="col-lg-4">
             <div class="glass-card p-4 h-100 d-flex flex-column">
-                <h5 class="fw-bold mb-4 text-dark"><i class="fas fa-tractor me-2 text-warning"></i> Harvest Projections</h5>
-                <div class="p-4 rounded mb-4" style="background: rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.1);">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-muted" style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Expected Harvest</span>
-                        <span class="fw-bold text-dark fs-6">Nov 2026</span>
+                <h5 class="fw-bold mb-4 text-dark"><i class="fas fa-tractor me-2 text-warning"></i> Harvest & Realization</h5>
+                <div class="p-4 rounded-4 mb-3" style="background: rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.08);">
+                    <div class="d-flex justify-content-between align-items-center mb-2.5 pb-2 border-bottom">
+                        <span class="text-muted" style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Harvest Date</span>
+                        <span class="fw-bold text-dark" style="font-size: 13px;">{{ $investmentDetails['timeline']['expected_harvest'] }}</span>
                     </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2.5 pb-2 border-bottom">
+                        <span class="text-muted" style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Harvest Yield</span>
+                        <span class="fw-bold text-success" style="font-size: 13px;">
+                            @if(!empty($investmentDetails['latest_harvest']) && (float)($investmentDetails['latest_harvest']->actual_yield ?? 0) > 0)
+                                {{ number_format($investmentDetails['latest_harvest']->actual_yield, 2) }} Tons <small class="badge bg-success bg-opacity-10 text-success p-1 ms-1">Actual</small>
+                            @elseif(!empty($investmentDetails['latest_harvest']) && (float)($investmentDetails['latest_harvest']->estimated_yield ?? 0) > 0)
+                                {{ number_format($investmentDetails['latest_harvest']->estimated_yield, 2) }} Tons <small class="text-muted">(Target)</small>
+                            @else
+                                {{ number_format(($farm->total_acres ?? 2.5) * 2.8, 1) }} Tons <small class="text-muted">(Target)</small>
+                            @endif
+                        </span>
+                    </div>
+                    @if(!empty($investmentDetails['latest_harvest']?->quality_grade))
+                        <div class="d-flex justify-content-between align-items-center mb-2.5 pb-2 border-bottom">
+                            <span class="text-muted" style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Quality Grade</span>
+                            <span class="badge bg-primary bg-opacity-10 text-primary fw-bold" style="font-size: 11px;">{{ $investmentDetails['latest_harvest']->quality_grade }}</span>
+                        </div>
+                    @endif
+                    @if(!empty($investmentDetails['latest_harvest']?->market_name))
+                        <div class="d-flex justify-content-between align-items-center mb-2.5 pb-2 border-bottom">
+                            <span class="text-muted" style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Wholesale Market</span>
+                            <span class="fw-semibold text-dark" style="font-size: 12px;">{{ $investmentDetails['latest_harvest']->market_name }}</span>
+                        </div>
+                    @endif
                     <div class="d-flex justify-content-between align-items-center">
-                        <span class="text-muted" style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Estimated Yield</span>
-                        <span class="fw-bold text-success fs-6">450 Tons</span>
+                        <span class="text-muted" style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Gross Revenue</span>
+                        <strong class="text-dark" style="font-size: 14px;">₹{{ number_format($investmentDetails['revenue_earned'] ?? 0) }}</strong>
                     </div>
                 </div>
-                <p class="text-muted flex-grow-1" style="font-size: 13px; line-height: 1.6;">
-                    Once the harvest is complete, the produce is sold to pre-contracted institutional buyers at guaranteed minimum prices. Returns are distributed to investors within 15 days of the sale.
+                <p class="text-muted flex-grow-1" style="font-size: 12px; line-height: 1.6;">
+                    Produce is sold to verified agricultural APMC markets and institutional off-takers with guaranteed settlements. Returns are distributed per equity share upon cycle closure.
                 </p>
-                <button class="btn btn-outline-success w-100 mt-3 rounded-pill fw-semibold" data-bs-toggle="modal" data-bs-target="#contractModal" style="border-color: rgba(16, 185, 129, 0.5);">View Contract Details</button>
+                <div class="d-flex gap-2 mt-2">
+                    <button class="btn btn-outline-success w-100 rounded-pill fw-semibold py-2" data-bs-toggle="modal" data-bs-target="#contractModal" style="border-color: rgba(16, 185, 129, 0.5); font-size: 11px;">
+                        <i class="fas fa-file-contract me-1"></i> Contract Terms
+                    </button>
+                    @if(auth()->user()?->is_admin || (auth()->user()?->farmer && (int)auth()->user()->farmer->id === (int)$farm->farmer_id))
+                        <a href="{{ route('admin.farms.show', $farm->id) }}" class="btn btn-dark rounded-pill fw-semibold py-2 px-3 text-nowrap" style="font-size: 11px;">
+                            <i class="fas fa-cog me-1"></i> Farm Details
+                        </a>
+                    @endif
+                </div>
             </div>
         </div>
     </div>
@@ -456,7 +489,10 @@
             $stages = ['Land Prep', 'Sowing', 'Growing', 'Harvesting', 'Settled'];
             $currentStatus = $investmentDetails['status'];
             $currentIndex = array_search($currentStatus, $stages);
-            $progressPercent = ($currentIndex / (count($stages) - 1)) * 100;
+            if ($currentIndex === false) {
+                $currentIndex = ($currentStatus === 'Pending Approval') ? 0 : 2;
+            }
+            $progressPercent = $currentStatus === 'Settled' ? 100 : (($currentIndex / (count($stages) - 1)) * 100);
         ?>
 
         <div class="timeline-container mt-5 mb-3">
@@ -464,12 +500,13 @@
                 <div class="timeline-progress" style="width: {{ $progressPercent }}%;"></div>
             </div>
             <div class="timeline-steps">
-                @if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent())<!--[if BLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::openLoop(); ?>@endif<?php $__currentLoopData = $stages; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $stage): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>@if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent())<?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::startLoopIteration(); ?>@endif
+                @foreach($stages as $index => $stage)
                     <?php
                         $stateClass = '';
                         $icon = 'fas fa-check';
-                        if ($index < $currentIndex) {
+                        if ($index < $currentIndex || ($currentStatus === 'Settled' && $index <= $currentIndex)) {
                             $stateClass = 'done';
+                            $icon = 'fas fa-check';
                         } elseif ($index == $currentIndex) {
                             $stateClass = 'active';
                             $icon = 'fas fa-spinner fa-spin';
@@ -479,11 +516,11 @@
                     ?>
                     <div class="timeline-step {{ $stateClass }}">
                         <div class="step-circle">
-                            <i class="{{ $icon }}" style="{{ $index > $currentIndex ? 'font-size: 8px;' : '' }}"></i>
+                            <i class="{{ $icon }}" style="{{ $index > $currentIndex && $currentStatus !== 'Settled' ? 'font-size: 8px;' : '' }}"></i>
                         </div>
                         <div class="step-label">{{ $stage }}</div>
                     </div>
-                @if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent())<?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::endLoop(); ?>@endif<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>@if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent())<!--[if ENDBLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::closeLoop(); ?>@endif
+                @endforeach
             </div>
         </div>
         
@@ -493,28 +530,40 @@
         </div>
     </div>
 
-    <!-- Conditional Payout Section (If Harvested or Settled) -->
+    <!-- Conditional Payout Section (If Settled / Completed) -->
     @if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent())<!--[if BLOCK]><![endif]-->@endif@if($investmentDetails['is_settled'])
-        <div class="receipt-box mb-5 animate-fade-in">
+        <div class="receipt-box mb-5 animate-fade-in shadow-sm">
             <div class="row align-items-center">
                 <div class="col-md-7">
-                    <h3 class="fw-bold text-dark mb-2"><i class="fas fa-check-circle text-success me-2"></i> Investment Settled</h3>
-                    <p class="text-muted mb-4">The crop yield has been successfully harvested, sold, and your profits have been dispatched to your linked bank account.</p>
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="badge bg-success text-white px-3 py-1.5 rounded-pill fw-bold" style="font-size: 11px;">
+                            <i class="fas fa-check-double me-1"></i> SETTLEMENT COMPLETED
+                        </span>
+                        <span class="text-muted small">Recorded in Ledger</span>
+                    </div>
+                    <h3 class="fw-bold text-dark mb-2">Harvest Cycle Finalized & Settled</h3>
+                    <p class="text-muted mb-4" style="font-size: 13px;">The produce has been harvested and sold at wholesale market. Capital return and yield dividends have been finalized for this cycle.</p>
                     
-                    <div class="d-flex gap-4">
+                    <div class="d-flex gap-4 flex-wrap">
                         <div>
-                            <span class="d-block text-muted small text-uppercase fw-bold mb-1">Final Sale Profit</span>
-                            <h4 class="text-success fw-bold">₹{{ number_format($investmentDetails['final_profit']) }}</h4>
+                            <span class="d-block text-muted small text-uppercase fw-bold mb-1" style="font-size: 10px;">Gross Produce Revenue</span>
+                            <h4 class="text-dark fw-bold mb-0" style="font-size: 18px;">₹{{ number_format($investmentDetails['revenue_earned'] ?? 0) }}</h4>
                         </div>
                         <div style="border-left: 1px solid rgba(0,0,0,0.1); padding-left: 1.5rem;">
-                            <span class="d-block text-muted small text-uppercase fw-bold mb-1">Total Payout Dispatched</span>
-                            <h4 class="text-dark fw-bold">₹{{ number_format($investmentDetails['capital_committed'] + $investmentDetails['final_profit']) }}</h4>
+                            <span class="d-block text-muted small text-uppercase fw-bold mb-1" style="font-size: 10px;">Net Cycle Profit</span>
+                            <h4 class="{{ ($investmentDetails['net_profit'] ?? 0) < 0 ? 'text-danger' : 'text-success' }} fw-bold mb-0" style="font-size: 18px;">
+                                {{ ($investmentDetails['net_profit'] ?? 0) < 0 ? '-₹' . number_format(abs($investmentDetails['net_profit'])) : '₹' . number_format($investmentDetails['net_profit'] ?? 0) }}
+                            </h4>
+                        </div>
+                        <div style="border-left: 1px solid rgba(0,0,0,0.1); padding-left: 1.5rem;">
+                            <span class="d-block text-muted small text-uppercase fw-bold mb-1" style="font-size: 10px;">Total Dispatched Payout</span>
+                            <h4 class="text-success fw-bold mb-0" style="font-size: 20px;">₹{{ number_format($investmentDetails['actual_payout'] ?? $investmentDetails['capital_committed']) }}</h4>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-5 text-end mt-4 mt-md-0">
-                    <a href="{{ route('reports.export', ['type' => 'portfolio']) }}" class="btn btn-lg btn-success rounded-pill px-4" style="box-shadow: 0 5px 20px rgba(16, 185, 129, 0.4);">
-                        <i class="fas fa-file-invoice-dollar me-2"></i> Download Company Dispatch Receipt (.csv)
+                    <a href="{{ route('reports.export', ['type' => 'harvest', 'farm_id' => $farm->id]) }}" class="btn btn-lg btn-success rounded-pill px-4 fw-bold shadow-sm" style="background-color: #064e3b; border-color: #064e3b; font-size: 13px;">
+                        <i class="fas fa-file-invoice-dollar me-2"></i> Download Settlement Statement (.csv)
                     </a>
                 </div>
             </div>
@@ -526,26 +575,35 @@
     <p class="mb-4" style="color: var(--text-muted);">View recent photos and field logs uploaded directly by the farmer.</p>
     
     <div class="row g-4">
-        @if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent())<!--[if BLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::openLoop(); ?>@endif<?php $__empty_1 = true; $__currentLoopData = $investmentDetails['updates']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $update): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>@if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent())<?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::startLoopIteration(); ?>@endif
+        @forelse($investmentDetails['updates'] as $update)
             <div class="col-md-4">
-                <div class="update-card">
-                    <div class="update-img-wrapper">
-                        <img src="{{ $update['image'] }}" class="update-img" alt="Farm Update">
-                        <div class="update-date-badge"><i class="far fa-calendar-alt me-1"></i> {{ $update['date'] }}</div>
+                <div class="update-card bg-white shadow-sm border rounded-4 overflow-hidden h-100">
+                    <div class="update-img-wrapper" style="position: relative; height: 190px; overflow: hidden; background: #f3f4f6;">
+                        <img src="{{ !empty($update['image']) ? $update['image'] : 'https://images.unsplash.com/photo-1592982537447-7440770cbfc9?auto=format&fit=crop&w=800&q=80' }}" class="update-img w-100 h-100" style="object-fit: cover;" alt="Farm Update">
+                        <div class="update-date-badge shadow-sm" style="position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.65); color: #fff; font-size: 11px; padding: 4px 10px; border-radius: 20px;">
+                            <i class="far fa-calendar-alt me-1"></i> {{ $update['date'] }}
+                        </div>
+                        @if(($update['type'] ?? '') === 'harvest_milestone')
+                            <div style="position: absolute; bottom: 12px; left: 12px;">
+                                <span class="badge bg-success text-white px-2.5 py-1 rounded-pill shadow-sm" style="font-size: 10px;">
+                                    <i class="fas fa-check-circle me-1"></i> Harvest Milestone
+                                </span>
+                            </div>
+                        @endif
                     </div>
-                    <div class="update-content">
-                        <h6 class="fw-bold text-dark mb-2">{{ $update['title'] }}</h6>
-                        <p class="text-muted small mb-0" style="line-height: 1.6;">{{ $update['description'] }}</p>
+                    <div class="update-content p-3.5">
+                        <h6 class="fw-bold text-dark mb-1.5" style="font-size: 14px;">{{ $update['title'] }}</h6>
+                        <p class="text-muted small mb-0" style="line-height: 1.6; font-size: 12px;">{{ $update['description'] }}</p>
                     </div>
                 </div>
             </div>
-        @if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent())<?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::endLoop(); ?>@endif<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>@if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent())<?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::closeLoop(); ?>@endif
+        @empty
             <div class="col-12 text-center py-5 glass-card">
                 <i class="fas fa-image fa-3x text-muted mb-3 opacity-50"></i>
                 <h5 class="text-dark">No updates yet</h5>
                 <p style="color: var(--text-muted);">The farmer hasn't uploaded any photos yet. Check back soon!</p>
             </div>
-        @endif@if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent())<!--[if ENDBLOCK]><![endif]-->@endif
+        @endforelse
     </div>
 
 </div>

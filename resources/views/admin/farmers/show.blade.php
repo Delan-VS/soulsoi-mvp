@@ -50,8 +50,8 @@
 <div class="container-fluid py-2">
 
     <!-- Top Action Bar & Header -->
-    <div class="row align-items-center mb-4">
-        <div class="col-md-7">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+        <div>
             <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
                 <h3 class="fw-bold mb-0" style="color: var(--text-dark); font-size: 22px;">{{ $farmer?->full_name ?? 'N/A' }}</h3>
                 @if($farmer->overall_status === 'approved')
@@ -74,21 +74,94 @@
                 <span class="ms-3"><i class="fas fa-calendar-alt me-1"></i> Submitted {{ $farmer->created_at ? $farmer->created_at->format('M d, Y') : 'Recently' }}</span>
             </p>
         </div>
-        <div class="col-md-5 text-end">
+        <div class="d-flex align-items-center justify-content-start justify-content-md-end gap-2 flex-wrap">
             <?php
                 $backUrl = url()->previous();
                 if ($backUrl === url()->current()) {
                     $backUrl = route('admin.dashboard', ['tab' => 'farmers']);
                 }
             ?>
-            <a href="{{ $backUrl }}" class="btn btn-light fw-semibold text-muted me-2" style="font-size: 13px; border-radius: 8px;">
-                <i class="fas fa-arrow-left me-1"></i> Back
+            <a href="{{ $backUrl }}" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1.5 px-3 py-2 fw-semibold bg-white shadow-sm" style="font-size: 13px; border-radius: 8px; border-color: #D1D5DB; color: #4B5563; height: 38px;">
+                <i class="fas fa-arrow-left"></i>
+                <span>Back</span>
             </a>
-            <a href="{{ route('admin.farmers.pdf', $farmer) }}" target="_blank" class="btn btn-outline-success fw-semibold" style="font-size: 13px; border-radius: 8px; border-color: var(--soil-primary); color: var(--soil-primary);">
-                <i class="fas fa-file-pdf me-1"></i> Export Profile PDF
-            </a>
+          
         </div>
     </div>
+
+    <!-- Rejection / Review Alert Banner for Unapproved Farmer -->
+    @if($farmer->overall_status === 'rejected')
+        <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden" style="border-left: 6px solid #dc2626 !important; background: #fff5f5;">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-start gap-3">
+                    <div class="p-3 rounded-circle bg-danger bg-opacity-15 text-danger flex-shrink-0 mt-1">
+                        <i class="fas fa-times-circle fa-2x"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-1">
+                            <h5 class="fw-bold text-danger mb-0">
+                                <i class="fas fa-ban me-1.5"></i> Application Verification Rejected
+                            </h5>
+                            <span class="badge bg-danger text-white px-3 py-1.5 rounded-pill fw-semibold" style="font-size: 11px;">
+                                Unapproved Farmer
+                            </span>
+                        </div>
+                        <p class="text-secondary small mb-3" style="line-height: 1.6;">
+                            This farmer's account verification was rejected. The rejection reason is kept on record and shown to the farmer on their dashboard.
+                        </p>
+                        <!-- Prominent Rejection Reason Box -->
+                        <div class="p-3 rounded-3 bg-white border border-danger border-opacity-30 mb-3 shadow-xs">
+                            <div class="small fw-bold text-danger mb-1">
+                                <i class="fas fa-comment-dots me-1"></i> Rejection Reason / Admin Notes:
+                            </div>
+                            <div class="text-dark fw-semibold" style="font-size: 14px;">
+                                {{ $farmer->admin_notes ?: 'Documents or bank details did not meet the verification requirements.' }}
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-4 flex-wrap text-muted small">
+                            @if($farmer->reviewedBy)
+                                <span><i class="fas fa-user-shield text-danger me-1"></i> Rejected by: <strong class="text-dark">{{ $farmer->reviewedBy->name }}</strong></span>
+                            @endif
+                            @if($farmer->reviewed_at)
+                                <span><i class="fas fa-calendar-alt text-danger me-1"></i> Rejected on: <strong class="text-dark">{{ $farmer->reviewed_at->format('M d, Y h:i A') }}</strong></span>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @elseif($farmer->overall_status === 'pending' && $farmer->admin_notes)
+        <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden" style="border-left: 6px solid #f59e0b !important; background: #fffbeb;">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-start gap-3">
+                    <div class="p-3 rounded-circle bg-warning bg-opacity-20 text-warning flex-shrink-0 mt-1">
+                        <i class="fas fa-history fa-2x"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-1">
+                            <h5 class="fw-bold text-dark mb-0">
+                                <i class="fas fa-clock text-warning me-1.5"></i> Pending Verification (Previously Rejected)
+                            </h5>
+                            <span class="badge bg-warning text-dark px-3 py-1.5 rounded-pill fw-semibold" style="font-size: 11px;">
+                                Needs Re-Review
+                            </span>
+                        </div>
+                        <p class="text-secondary small mb-2">
+                            This farmer was previously rejected and has resubmitted their details. Please verify if the requested changes were addressed.
+                        </p>
+                        <div class="p-3 rounded-3 bg-white border border-warning border-opacity-30 shadow-xs">
+                            <div class="small fw-bold text-dark mb-1">
+                                <i class="fas fa-sticky-note text-warning me-1"></i> Previous Rejection Reason:
+                            </div>
+                            <div class="text-dark fw-semibold" style="font-size: 13.5px;">
+                                {{ $farmer->admin_notes }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
 
     <!-- Farmer Account Snapshot Grid (Dynamic) -->
     <?php
@@ -371,9 +444,17 @@
                             <i class="fas fa-times fs-3"></i>
                         </div>
                         <h5 class="fw-bold text-danger mb-1">Application Rejected</h5>
-                        <p class="text-muted mb-0" style="font-size: 12px;">
+                        <p class="text-muted mb-2" style="font-size: 12px;">
                             {{ $farmer->admin_notes ?? 'Requirements did not meet compliance criteria.' }}
                         </p>
+                        @if($farmer->reviewedBy)
+                            <div class="text-muted small border-top border-danger border-opacity-20 pt-2 text-start" style="font-size: 11px;">
+                                <i class="fas fa-user-shield me-1 text-danger"></i> <strong>By:</strong> {{ $farmer->reviewedBy->name }}<br>
+                                @if($farmer->reviewed_at)
+                                    <i class="fas fa-clock me-1 text-danger"></i> {{ $farmer->reviewed_at->format('M d, Y h:i A') }}
+                                @endif
+                            </div>
+                        @endif
                     </div>
                 @else
                     <div class="p-4 rounded-3 bg-warning bg-opacity-10 border border-warning border-opacity-25 mb-3 text-dark">
@@ -387,8 +468,8 @@
                     </div>
                 @endif
 
-                <!-- Approval / Rejection Section for Pending Farmers -->
-                @if($farmer->overall_status === 'pending')
+                <!-- Approval / Rejection Section for Unapproved Farmers -->
+                @if($farmer->overall_status !== 'approved')
                     <div class="p-3 bg-light rounded-3 border text-start mb-3">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <h6 class="fw-bold text-dark mb-0" style="font-size: 11px; text-transform: uppercase;">Mandatory Document Verification</h6>
@@ -464,12 +545,12 @@
                     <form action="{{ route('admin.farmers.approve', $farmer) }}" method="POST" id="approveForm" class="mb-2">
                         @csrf
                         <button type="button" class="btn btn-success w-100 py-2.5 fw-bold" id="btnApproveFarmerModal" data-bs-toggle="modal" data-bs-target="#confirmApproveModal" disabled style="background-color: var(--soil-primary); border-color: var(--soil-primary);">
-                            <i class="fas fa-check me-2"></i> Approve Farmer Account
+                            <i class="fas fa-check me-2"></i> {{ $farmer->overall_status === 'rejected' ? 'Re-Approve Farmer Account' : 'Approve Farmer Account' }}
                         </button>
                     </form>
 
                     <button type="button" class="btn btn-outline-danger w-100 py-2 fw-semibold" data-bs-toggle="modal" data-bs-target="#confirmRejectModal">
-                        <i class="fas fa-times me-2"></i> Reject Application
+                        <i class="fas fa-times me-2"></i> {{ $farmer->overall_status === 'rejected' ? 'Update Rejection Reason' : 'Reject Application' }}
                     </button>
                 @endif
             </div>
@@ -621,7 +702,7 @@
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             <div class="modal-header border-0 bg-danger text-white p-4">
                 <h5 class="modal-title fw-bold mb-0">
-                    <i class="fas fa-times-circle me-2"></i> Confirm Application Rejection
+                    <i class="fas fa-times-circle me-2"></i> {{ $farmer->overall_status === 'rejected' ? 'Update Rejection Reason' : 'Confirm Application Rejection' }}
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -630,7 +711,7 @@
                 <div class="modal-body p-4 bg-white">
                     <div class="mb-3">
                         <label for="reject_reason" class="form-label fw-bold text-dark" style="font-size: 12px;">Rejection Reason <span class="text-danger">*</span></label>
-                        <textarea class="form-control" id="reject_reason" name="reason" rows="3" placeholder="Explain why this application is being rejected..." required></textarea>
+                        <textarea class="form-control" id="reject_reason" name="reason" rows="3" placeholder="Explain why this application is being rejected..." required>{{ old('reason', $farmer->admin_notes) }}</textarea>
                     </div>
                     <div class="alert alert-warning bg-warning bg-opacity-10 border border-warning border-opacity-25 text-dark rounded-3" style="font-size: 12px;">
                         <i class="fas fa-exclamation-triangle me-2 text-warning"></i>
@@ -640,7 +721,7 @@
                 <div class="modal-footer border-0 bg-light p-3">
                     <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold">
-                        <i class="fas fa-times me-1"></i> Yes, Reject
+                        <i class="fas fa-times me-1"></i> {{ $farmer->overall_status === 'rejected' ? 'Save Rejection Reason' : 'Yes, Reject' }}
                     </button>
                 </div>
             </form>

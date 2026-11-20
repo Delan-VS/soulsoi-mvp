@@ -75,22 +75,73 @@
         }
 
         /* Global Smaller Heading Font Sizes */
-        h1, .h1 { font-size: 1.45rem !important; line-height: 1.3; }
-        h2, .h2 { font-size: 1.3rem !important; line-height: 1.3; }
-        h3, .h3 { font-size: 1.15rem !important; line-height: 1.35; }
-        h4, .h4 { font-size: 1.05rem !important; line-height: 1.4; }
-        h5, .h5 { font-size: 0.95rem !important; line-height: 1.4; }
-        h6, .h6 { font-size: 0.85rem !important; line-height: 1.4; }
+        h1,
+        .h1 {
+            font-size: 1.45rem !important;
+            line-height: 1.3;
+        }
 
-        .display-1 { font-size: 2.1rem !important; }
-        .display-2 { font-size: 1.85rem !important; }
-        .display-3 { font-size: 1.65rem !important; }
-        .display-4 { font-size: 1.45rem !important; }
-        .display-5 { font-size: 1.3rem !important; }
-        .display-6 { font-size: 1.15rem !important; }
+        h2,
+        .h2 {
+            font-size: 1.3rem !important;
+            line-height: 1.3;
+        }
 
-        .modal-title { font-size: 1.1rem !important; }
-        .card-title { font-size: 1.05rem !important; }
+        h3,
+        .h3 {
+            font-size: 1.15rem !important;
+            line-height: 1.35;
+        }
+
+        h4,
+        .h4 {
+            font-size: 1.05rem !important;
+            line-height: 1.4;
+        }
+
+        h5,
+        .h5 {
+            font-size: 0.95rem !important;
+            line-height: 1.4;
+        }
+
+        h6,
+        .h6 {
+            font-size: 0.85rem !important;
+            line-height: 1.4;
+        }
+
+        .display-1 {
+            font-size: 2.1rem !important;
+        }
+
+        .display-2 {
+            font-size: 1.85rem !important;
+        }
+
+        .display-3 {
+            font-size: 1.65rem !important;
+        }
+
+        .display-4 {
+            font-size: 1.45rem !important;
+        }
+
+        .display-5 {
+            font-size: 1.3rem !important;
+        }
+
+        .display-6 {
+            font-size: 1.15rem !important;
+        }
+
+        .modal-title {
+            font-size: 1.1rem !important;
+        }
+
+        .card-title {
+            font-size: 1.05rem !important;
+        }
 
         .sidebar {
             background: white;
@@ -142,6 +193,103 @@
 
         .sidebar .nav-link.active i {
             color: white !important;
+        }
+
+        .sidebar .nav-link.disabled-sidebar-link {
+            opacity: 0.42 !important;
+            pointer-events: none !important;
+            cursor: not-allowed !important;
+            color: #94a3b8 !important;
+            background: transparent !important;
+            transform: none !important;
+            user-select: none;
+            box-shadow: none !important;
+        }
+
+        .sidebar .nav-link.disabled-sidebar-link:hover {
+            background-color: transparent !important;
+            color: #94a3b8 !important;
+            transform: none !important;
+        }
+
+        .sidebar .nav-link.disabled-sidebar-link i {
+            color: #94a3b8 !important;
+        }
+
+        /* Farmer Verification Tracking Timeline */
+        .timeline-track-bar {
+            position: absolute;
+            top: 25px;
+            left: 12.5%;
+            right: 12.5%;
+            height: 4px;
+            background: #e2e8f0;
+            z-index: 1;
+            border-radius: 4px;
+        }
+
+        .timeline-track-progress {
+            height: 100%;
+            background: #10b981;
+            border-radius: 4px;
+            transition: width 0.6s ease;
+        }
+
+        .timeline-track-progress.rejected {
+            background: linear-gradient(to right, #10b981 33%, #dc2626 66%);
+        }
+
+        .timeline-step-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin: 0 auto 0.5rem auto;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 2;
+        }
+
+        .timeline-step-icon.done {
+            background: #10b981;
+            color: #ffffff;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35);
+        }
+
+        .timeline-step-icon.active {
+            background: #3b82f6;
+            color: #ffffff;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+            animation: pulse-step 2s infinite;
+        }
+
+        .timeline-step-icon.pending {
+            background: #f1f5f9;
+            color: #94a3b8;
+            border: 2px dashed #cbd5e1;
+        }
+
+        .timeline-step-icon.rejected {
+            background: #dc2626;
+            color: #ffffff;
+            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.35);
+            animation: pulse-rejected 2s infinite;
+        }
+
+        @keyframes pulse-step {
+            0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.5); }
+            70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
+
+        @keyframes pulse-rejected {
+            0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.5); }
+            70% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
         }
 
         .navbar {
@@ -538,36 +686,98 @@
                             </a>
 
                         @elseif(auth()->user()?->farmer)
+                            @php
+                                $farmer = auth()->user()->farmer;
+                                $isApprovedFarmer = $farmer && $farmer->overall_status === 'approved';
+                            @endphp
+
+                            @if(!$isApprovedFarmer)
+                                <div class="px-2 mb-3">
+                                    <div class="p-2.5 rounded-3 {{ $farmer?->overall_status === 'rejected' ? 'bg-danger bg-opacity-10 border border-danger border-opacity-25' : 'bg-warning bg-opacity-10 border border-warning border-opacity-25' }}">
+                                        <div class="d-flex align-items-center gap-1.5 mb-1">
+                                            <i class="fas {{ $farmer?->overall_status === 'rejected' ? 'fa-times-circle text-danger' : 'fa-clock text-warning' }}" style="font-size: 12px;"></i>
+                                            <span class="fw-bold {{ $farmer?->overall_status === 'rejected' ? 'text-danger' : 'text-warning' }}" style="font-size: 11px;">
+                                                {{ $farmer?->overall_status === 'rejected' ? 'Account Rejected' : 'Pending Approval' }}
+                                            </span>
+                                        </div>
+                                        <div class="text-muted" style="font-size: 10px; line-height: 1.35;">
+                                            {{ $farmer?->overall_status === 'rejected' ? 'Verification was not approved.' : 'Sidebar actions are disabled until admin approves your account.' }}
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+
                             <a class="nav-link active" href="{{ route('admin.dashboard') }}#dashboard" data-tab="dashboard">
                                 <i class="fas fa-th-large me-2"></i> Dashboard
                             </a>
-                            <a class="nav-link" href="{{ route('admin.dashboard') }}#my-farms" data-tab="my-farms">
-                                <i class="fas fa-seedling me-2"></i> My Farms
-                            </a>
-                            <a class="nav-link" href="{{ route('admin.dashboard') }}#add-farm" data-tab="add-farm">
-                                <i class="fas fa-plus-circle me-2"></i> Add New Farm
-                            </a>
-                            <a class="nav-link" href="{{ route('admin.dashboard') }}#farm-updates" data-tab="farm-updates">
-                                <i class="fas fa-bullhorn me-2"></i> Farm Updates
-                            </a>
-                            <a class="nav-link" href="{{ route('admin.dashboard') }}#harvest-management" data-tab="harvest-management">
-                                <i class="fas fa-wheat-awn me-2"></i> Harvest Management
-                            </a>
-                            <a class="nav-link" href="{{ route('admin.dashboard') }}#sales-proof" data-tab="sales-proof">
-                                <i class="fas fa-file-invoice-dollar me-2"></i> Sales & Proof
-                            </a>
-                            <a class="nav-link" href="{{ route('admin.dashboard') }}#settlements" data-tab="settlements">
-                                <i class="fas fa-wallet me-2"></i> Settlements
-                            </a>
-                            <a class="nav-link" href="{{ route('admin.dashboard') }}#portfolio" data-tab="portfolio">
-                                <i class="fas fa-briefcase me-2"></i> Portfolio
-                            </a>
-                            <a class="nav-link" href="{{ route('admin.dashboard') }}#profile" data-tab="profile">
-                                <i class="fas fa-user-circle me-2"></i> Profile
-                            </a>
-                            <a class="nav-link" href="{{ route('admin.dashboard') }}#settings" data-tab="settings">
-                                <i class="fas fa-cog me-2"></i> Settings
-                            </a>
+
+                            @if($isApprovedFarmer)
+                                <a class="nav-link" href="{{ route('admin.dashboard') }}#my-farms" data-tab="my-farms">
+                                    <i class="fas fa-seedling me-2"></i> My Farms
+                                </a>
+                                <a class="nav-link" href="{{ route('admin.dashboard') }}#add-farm" data-tab="add-farm">
+                                    <i class="fas fa-plus-circle me-2"></i> Add New Farm
+                                </a>
+                                <a class="nav-link" href="{{ route('admin.dashboard') }}#farm-updates" data-tab="farm-updates">
+                                    <i class="fas fa-bullhorn me-2"></i> Farm Updates
+                                </a>
+                                <a class="nav-link" href="{{ route('admin.dashboard') }}#harvest-management"
+                                    data-tab="harvest-management">
+                                    <i class="fas fa-wheat-awn me-2"></i> Harvest Management
+                                </a>
+                                <a class="nav-link" href="{{ route('admin.dashboard') }}#sales-proof" data-tab="sales-proof">
+                                    <i class="fas fa-file-invoice-dollar me-2"></i> Sales & Proof
+                                </a>
+                                <a class="nav-link" href="{{ route('admin.dashboard') }}#settlements" data-tab="settlements">
+                                    <i class="fas fa-wallet me-2"></i> Settlements
+                                </a>
+                                <a class="nav-link" href="{{ route('admin.dashboard') }}#portfolio" data-tab="portfolio">
+                                    <i class="fas fa-briefcase me-2"></i> Portfolio
+                                </a>
+                                <a class="nav-link" href="{{ route('admin.dashboard') }}#profile" data-tab="profile">
+                                    <i class="fas fa-user-circle me-2"></i> Profile
+                                </a>
+                                <a class="nav-link" href="{{ route('admin.dashboard') }}#settings" data-tab="settings">
+                                    <i class="fas fa-cog me-2"></i> Settings
+                                </a>
+                            @else
+                                <a class="nav-link disabled-sidebar-link d-flex align-items-center justify-content-between" href="javascript:void(0)" tabindex="-1" aria-disabled="true" title="Disabled until account approval">
+                                    <span><i class="fas fa-seedling me-2"></i> My Farms</span>
+                                    <i class="fas fa-lock" style="font-size: 10px;"></i>
+                                </a>
+                                <a class="nav-link disabled-sidebar-link d-flex align-items-center justify-content-between" href="javascript:void(0)" tabindex="-1" aria-disabled="true" title="Disabled until account approval">
+                                    <span><i class="fas fa-plus-circle me-2"></i> Add New Farm</span>
+                                    <i class="fas fa-lock" style="font-size: 10px;"></i>
+                                </a>
+                                <a class="nav-link disabled-sidebar-link d-flex align-items-center justify-content-between" href="javascript:void(0)" tabindex="-1" aria-disabled="true" title="Disabled until account approval">
+                                    <span><i class="fas fa-bullhorn me-2"></i> Farm Updates</span>
+                                    <i class="fas fa-lock" style="font-size: 10px;"></i>
+                                </a>
+                                <a class="nav-link disabled-sidebar-link d-flex align-items-center justify-content-between" href="javascript:void(0)" tabindex="-1" aria-disabled="true" title="Disabled until account approval">
+                                    <span><i class="fas fa-wheat-awn me-2"></i> Harvest Management</span>
+                                    <i class="fas fa-lock" style="font-size: 10px;"></i>
+                                </a>
+                                <a class="nav-link disabled-sidebar-link d-flex align-items-center justify-content-between" href="javascript:void(0)" tabindex="-1" aria-disabled="true" title="Disabled until account approval">
+                                    <span><i class="fas fa-file-invoice-dollar me-2"></i> Sales & Proof</span>
+                                    <i class="fas fa-lock" style="font-size: 10px;"></i>
+                                </a>
+                                <a class="nav-link disabled-sidebar-link d-flex align-items-center justify-content-between" href="javascript:void(0)" tabindex="-1" aria-disabled="true" title="Disabled until account approval">
+                                    <span><i class="fas fa-wallet me-2"></i> Settlements</span>
+                                    <i class="fas fa-lock" style="font-size: 10px;"></i>
+                                </a>
+                                <a class="nav-link disabled-sidebar-link d-flex align-items-center justify-content-between" href="javascript:void(0)" tabindex="-1" aria-disabled="true" title="Disabled until account approval">
+                                    <span><i class="fas fa-briefcase me-2"></i> Portfolio</span>
+                                    <i class="fas fa-lock" style="font-size: 10px;"></i>
+                                </a>
+                                <a class="nav-link disabled-sidebar-link d-flex align-items-center justify-content-between" href="javascript:void(0)" tabindex="-1" aria-disabled="true" title="Disabled until account approval">
+                                    <span><i class="fas fa-user-circle me-2"></i> Profile</span>
+                                    <i class="fas fa-lock" style="font-size: 10px;"></i>
+                                </a>
+                                <a class="nav-link disabled-sidebar-link d-flex align-items-center justify-content-between" href="javascript:void(0)" tabindex="-1" aria-disabled="true" title="Disabled until account approval">
+                                    <span><i class="fas fa-cog me-2"></i> Settings</span>
+                                    <i class="fas fa-lock" style="font-size: 10px;"></i>
+                                </a>
+                            @endif
                         @else
                             <a class="nav-link {{ !request('tab') || request('tab') === 'overview' ? 'active' : '' }}"
                                 href="{{ route('admin.dashboard') }}#overview" data-tab="overview">
@@ -634,14 +844,7 @@
                                 <span class="navbar-brand">@yield('page-title', 'Dashboard')</span>
                             </div>
                             <div class="d-flex align-items-center gap-2">
-                                @if(auth()->check() && auth()->user()->is_admin)
-                                    <a href="{{ route('register', ['role' => 'farmer']) }}" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1.5 fw-semibold d-none d-sm-inline-flex align-items-center gap-1" style="font-size: 11px;">
-                                        <i class="fas fa-user-plus"></i> Register as Farmer
-                                    </a>
-                                    <a href="{{ route('register', ['role' => 'investor']) }}" class="btn btn-sm btn-outline-info rounded-pill px-3 py-1.5 fw-semibold d-none d-sm-inline-flex align-items-center gap-1" style="font-size: 11px;">
-                                        <i class="fas fa-handshake"></i> Register as Investor
-                                    </a>
-                                @endif
+
                                 <button id="fullscreen-toggle"
                                     class="btn btn-light rounded-circle p-2 me-1 d-none d-md-flex align-items-center justify-content-center"
                                     style="width: 36px; height: 36px;" title="Toggle Fullscreen">
@@ -726,8 +929,8 @@
             if (window.innerWidth >= 768) closeMobileMenu();
         });
 
-        // Auto-hide alerts after 5 seconds
-        document.querySelectorAll('.alert').forEach(alert => {
+        // Auto-hide alerts after 5 seconds (except persistent validation alerts)
+        document.querySelectorAll('.alert:not(.no-auto-dismiss)').forEach(alert => {
             setTimeout(() => {
                 const bsAlert = new bootstrap.Alert(alert);
                 if (bsAlert) bsAlert.close();
@@ -817,10 +1020,27 @@
                     initialTab = savedTab;
                 }
 
+                @if(auth()->user()?->farmer && auth()->user()->farmer->overall_status !== 'approved')
+                    initialTab = 'dashboard';
+                @endif
+
                 switchTab(initialTab);
+
+                // Prevent any interaction on disabled sidebar links
+                document.querySelectorAll('.sidebar .nav-link.disabled-sidebar-link').forEach(link => {
+                    link.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                    });
+                });
 
                 // Listen for hash changes
                 window.addEventListener('hashchange', function () {
+                    @if(auth()->user()?->farmer && auth()->user()->farmer->overall_status !== 'approved')
+                        switchTab('dashboard');
+                        return;
+                    @endif
                     const hashTab = window.location.hash.substring(1);
                     if (document.getElementById('tab-' + hashTab) || document.getElementById(hashTab)) {
                         switchTab(hashTab);

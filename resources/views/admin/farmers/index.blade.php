@@ -80,10 +80,20 @@
                                     <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-1.5 rounded-pill fw-bold">
                                         <i class="fas fa-times-circle me-1"></i> Rejected
                                     </span>
+                                    @if($farmer->admin_notes)
+                                        <div class="text-danger text-truncate mt-1" style="max-width: 220px; font-size: 10.5px;" title="{{ $farmer->admin_notes }}">
+                                            <i class="fas fa-comment-alt me-1"></i> {{ $farmer->admin_notes }}
+                                        </div>
+                                    @endif
                                 @else
                                     <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-1.5 rounded-pill fw-bold">
                                         <i class="fas fa-clock me-1"></i> Pending
                                     </span>
+                                    @if($farmer->admin_notes)
+                                        <div class="text-muted text-truncate mt-1" style="max-width: 220px; font-size: 10.5px;" title="Previous rejection: {{ $farmer->admin_notes }}">
+                                            <i class="fas fa-history text-warning me-1"></i> Prev: {{ $farmer->admin_notes }}
+                                        </div>
+                                    @endif
                                 @endif
                             </td>
 
@@ -91,18 +101,42 @@
                             <td class="px-4 py-3 text-end">
                                 <div class="d-flex justify-content-end gap-2 align-items-center">
                                     @if($farmer->overall_status === 'pending')
-                                        <form action="{{ route('admin.farmers.approve', $farmer) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            <button type="submit" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-semibold" style="font-size: 11px;">
-                                                <i class="fas fa-check me-1"></i> Approve
-                                            </button>
-                                        </form>
-                                        <form action="{{ route('admin.farmers.reject', $farmer) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1 fw-semibold" style="font-size: 11px;">
-                                                <i class="fas fa-times me-1"></i> Reject
-                                            </button>
-                                        </form>
+                                        <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1 fw-semibold" style="font-size: 11px;" data-bs-toggle="modal" data-bs-target="#rejectFarmerModal{{ $farmer->id }}">
+                                            <i class="fas fa-times me-1"></i> Reject
+                                        </button>
+
+                                        <!-- Reject Modal for Farmer -->
+                                        <div class="modal fade text-start" id="rejectFarmerModal{{ $farmer->id }}" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered">
+                                                <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                                                    <div class="modal-header border-0 bg-danger text-white p-4">
+                                                        <h5 class="modal-title fw-bold mb-0">
+                                                            <i class="fas fa-times-circle me-2"></i> Reject Farmer: {{ $farmer->full_name }}
+                                                        </h5>
+                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <form action="{{ route('admin.farmers.reject', $farmer) }}" method="POST">
+                                                        @csrf
+                                                        <div class="modal-body p-4 bg-white">
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-bold text-dark small">Rejection Reason <span class="text-danger">*</span></label>
+                                                                <textarea class="form-control form-control-sm" name="reason" rows="3" placeholder="Explain why this farmer is being rejected (e.g., Aadhaar scan is blurry, invalid bank IFSC)..." required></textarea>
+                                                            </div>
+                                                            <div class="alert alert-warning bg-warning bg-opacity-10 border border-warning border-opacity-25 text-dark rounded-3 small mb-0">
+                                                                <i class="fas fa-exclamation-triangle me-1 text-warning"></i>
+                                                                This rejection reason will be displayed on the farmer's dashboard so they know exactly what to correct.
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer border-0 bg-light p-3">
+                                                            <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                                                            <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold">
+                                                                <i class="fas fa-times me-1"></i> Confirm Rejection
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
                                     @endif
                                     
                                     <a href="{{ route('admin.farmers.show', $farmer) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-semibold" style="font-size: 11px;">

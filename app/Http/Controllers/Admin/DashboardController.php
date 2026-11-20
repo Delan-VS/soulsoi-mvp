@@ -43,7 +43,7 @@ class DashboardController extends Controller
         $salesAndProofs = collect([]);
         $myFarmInvestments = collect([]);
         if ($user?->farmer) {
-            $myFarms = Farm::where('farmer_id', $user->farmer->id)->with(['updates', 'harvests'])->get();
+            $myFarms = Farm::where('farmer_id', $user->farmer->id)->with(['updates', 'harvests'])->latest()->get();
             if (class_exists('\App\Models\Sale')) {
                 $salesAndProofs = \App\Models\Sale::whereHas('farm', function($q) use ($user) {
                     $q->where('farmer_id', $user->farmer->id);
@@ -148,6 +148,74 @@ class DashboardController extends Controller
     public function exportReport(Request $request)
     {
         $type = $request->query('type', 'farms');
+
+        if ($type === 'harvest' && $request->filled('farm_id')) {
+            $farm = Farm::with(['investments', 'harvests'])->findOrFail($request->query('farm_id'));
+
+            $confirmedInvestment = (float) $farm->investments()
+                ->whereIn('status', ['approved', 'active'])
+                ->sum('amount');
+            $requiredFunding = (float) ($farm->funding_target ?? 0);
+            $isFunded = $confirmedInvestment > 0 && ($requiredFunding <= 0 || $confirmedInvestment >= $requiredFunding);
+            $realHarvests = $farm->harvests()->where('status', '!=', 'gallery_photo')->latest()->get();
+
+            if ($realHarvests->isEmpty() || !$isFunded) {
+                return redirect(route('admin.farms.show', $farm->id) . '?tab=harvest#harvest')
+                    ->with('error', 'Export Report is only available after a harvest is recorded and the farm is funded.');
+            }
+
+            $expenses = 0.0;
+            if (!empty($farm->disbursement_history) && is_array($farm->disbursement_history)) {
+                foreach ($farm->disbursement_history as $item) {
+                    if (str_contains(strtolower(trim($item['status'] ?? '')), 'disbursed')) {
+                        $expenses += (float) ($item['amount'] ?? 0);
+                    }
+                }
+            }
+
+            $revenue = (float) $realHarvests->sum(fn ($h) => $h->computedRevenue());
+            $totalYield = (float) $realHarvests->sum('actual_yield');
+            $profit = $revenue - $expenses;
+            $roi = $confirmedInvestment > 0 ? round(($profit / $confirmedInvestment) * 100, 1) . '%' : '—';
+            $latest = $realHarvests->first();
+
+            $headers = [
+                'Content-type'        => 'text/csv',
+                'Content-Disposition' => 'attachment; filename="harvest_report_farm_' . $farm->id . '.csv"',
+                'Pragma'              => 'no-cache',
+                'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0',
+                'Expires'             => '0'
+            ];
+
+            $callback = function () use ($farm, $confirmedInvestment, $expenses, $totalYield, $revenue, $profit, $roi, $latest) {
+                $file = fopen('php://output', 'w');
+                fputcsv($file, [
+                    'Farm ID', 'Farm Name', 'Status', 'Investment Raised', 'Required Funding',
+                    'Expenses', 'Total Yield (Tons)', 'Selling Price (/Ton)', 'Revenue',
+                    'Profit', 'ROI', 'Quality Grade', 'Wholesale Market', 'Start Date', 'Harvest Date'
+                ]);
+                fputcsv($file, [
+                    $farm->id,
+                    $farm->name,
+                    $farm->status === 'completed' ? 'Finalized' : ucfirst($latest->status),
+                    $confirmedInvestment,
+                    (float) ($farm->funding_target ?? 0),
+                    $expenses,
+                    $totalYield,
+                    $latest->effectiveSellingPrice(),
+                    $revenue,
+                    $profit,
+                    $roi,
+                    $latest->quality_grade ?? '—',
+                    $latest->market_name ?? '—',
+                    $latest->start_date ? $latest->start_date->format('Y-m-d') : '—',
+                    $latest->actual_harvest_date ? $latest->actual_harvest_date->format('Y-m-d') : '—',
+                ]);
+                fclose($file);
+            };
+
+            return response()->stream($callback, 200, $headers);
+        }
         
         $headers = [
             'Content-type'        => 'text/csv',
@@ -166,7 +234,7 @@ class DashboardController extends Controller
                 foreach ($farms as $farm) {
                     fputcsv($file, [
                         $farm->id,
-                        $farm->farm_name,
+                        $farm->name,
                         $farm->farmer && $farm->farmer->user ? $farm->farmer->user->name : 'N/A',
                         $farm->location,
                         $farm->total_acres,

@@ -66,10 +66,12 @@ class RegisterController extends Controller
             $rules['account_holder_name'] = ['required', 'string', 'max:255'];
             $rules['aadhar_front'] = ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:1024'];
             $rules['aadhar_back'] = ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:1024'];
+            $rules['aadhar_ecard'] = ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:1024'];
             $rules['pan_card'] = ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:1024'];
             $rules['land_certificate'] = ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:1024'];
             $rules['aadhar_front_path'] = ['nullable', 'string'];
             $rules['aadhar_back_path'] = ['nullable', 'string'];
+            $rules['aadhar_ecard_path'] = ['nullable', 'string'];
             $rules['pan_card_path'] = ['nullable', 'string'];
             $rules['land_certificate_path'] = ['nullable', 'string'];
         }
@@ -87,6 +89,7 @@ class RegisterController extends Controller
             'ifsc_code.regex' => 'IFSC code must be a valid 11-character code (e.g. SBIN0001234, 5th character must be 0).',
             'aadhar_front.max' => 'Aadhaar front file size must not exceed 1MB.',
             'aadhar_back.max' => 'Aadhaar back file size must not exceed 1MB.',
+            'aadhar_ecard.max' => 'Aadhaar e-Card file size must not exceed 1MB.',
             'pan_card.max' => 'PAN card file size must not exceed 1MB.',
             'land_certificate.max' => 'Additional document file size must not exceed 1MB.',
         ];
@@ -108,13 +111,13 @@ class RegisterController extends Controller
             'phone' => $request->phone,
             'password' => Hash::make($request->password),
             'is_admin' => false,
-            'investor_status' => 'approved',
-
+            'investor_status' => $request->role === 'investor' ? 'pending' : 'approved',
         ]);
 
         if ($request->role === 'farmer') {
             $aadharFrontPath = $request->aadhar_front_path ?? ($request->hasFile('aadhar_front') ? $request->file('aadhar_front')->store('farmers/documents', 'public') : null);
             $aadharBackPath = $request->aadhar_back_path ?? ($request->hasFile('aadhar_back') ? $request->file('aadhar_back')->store('farmers/documents', 'public') : null);
+            $aadharEcardPath = $request->aadhar_ecard_path ?? ($request->hasFile('aadhar_ecard') ? $request->file('aadhar_ecard')->store('farmers/documents', 'public') : null);
             $panCardPath = $request->pan_card_path ?? ($request->hasFile('pan_card') ? $request->file('pan_card')->store('farmers/documents', 'public') : null);
             $landCertPath = $request->land_certificate_path ?? ($request->hasFile('land_certificate') ? $request->file('land_certificate')->store('farmers/documents', 'public') : null);
 
@@ -135,6 +138,7 @@ class RegisterController extends Controller
                 'overall_status' => 'pending',
                 'aadhar_front_path' => $aadharFrontPath,
                 'aadhar_back_path' => $aadharBackPath,
+                'aadhar_ecard_path' => $aadharEcardPath,
                 'pan_card_path' => $panCardPath,
                 'land_certificate_path' => $landCertPath,
             ]);
@@ -164,7 +168,7 @@ class RegisterController extends Controller
     {
         $request->validate([
             'document' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:1024'],
-            'type' => ['required', 'string', 'in:aadhar_front,aadhar_back,pan_card,land_certificate'],
+            'type' => ['required', 'string', 'in:aadhar_front,aadhar_back,aadhar_ecard,pan_card,land_certificate'],
         ], [
             'document.max' => 'Document/Image file size must not exceed 1MB.',
             'document.mimes' => 'Document must be a JPG, JPEG, PNG, or PDF file.',

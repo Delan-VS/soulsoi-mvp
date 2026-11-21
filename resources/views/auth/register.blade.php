@@ -11,14 +11,32 @@
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        html {
+            font-size: 16.5px;
+        }
+
         body {
             background-color: #F1EFE8;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-size: 1rem;
+            line-height: 1.55;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 2rem 1rem;
+        }
+
+        .form-label, label {
+            font-size: 0.95rem;
+        }
+
+        .form-control, .form-select {
+            font-size: 0.98rem;
+        }
+
+        .btn {
+            font-size: 0.96rem;
         }
 
         .login-card {
@@ -326,19 +344,36 @@
                     <!-- Hidden inputs for AJAX uploaded files -->
                     <input type="hidden" name="aadhar_front_path" id="aadhar_front_path" value="{{ old('aadhar_front_path') }}" {{ $isFarmer ? '' : 'disabled' }}>
                     <input type="hidden" name="aadhar_back_path" id="aadhar_back_path" value="{{ old('aadhar_back_path') }}" {{ $isFarmer ? '' : 'disabled' }}>
+                    <input type="hidden" name="aadhar_ecard_path" id="aadhar_ecard_path" value="{{ old('aadhar_ecard_path') }}" {{ $isFarmer ? '' : 'disabled' }}>
                     <input type="hidden" name="pan_card_path" id="pan_card_path" value="{{ old('pan_card_path') }}" {{ $isFarmer ? '' : 'disabled' }}>
                     <input type="hidden" name="land_certificate_path" id="land_certificate_path" value="{{ old('land_certificate_path') }}" {{ $isFarmer ? '' : 'disabled' }}>
 
-                    <!-- 1. Upload Aadhaar Card -->
+                    <!-- 1. Upload Aadhaar Card & e-Card -->
                     <div class="mb-4">
-                        <label class="form-label fw-bold text-dark small mb-2">Upload Aadhaar Card <span class="text-danger">*</span> <span class="text-muted fw-normal" style="font-size: 0.75rem;">(Max 1MB per image)</span></label>
+                        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                            <label class="form-label fw-bold text-dark small mb-0">
+                                Upload Aadhaar Card / e-Card <span class="text-danger">*</span>
+                                <span class="text-muted fw-normal" style="font-size: 0.75rem;">(Max 1MB per file)</span>
+                            </label>
+                            <div class="d-flex align-items-center gap-1" style="font-size: 11px;">
+                                <span class="text-muted">Aadhaar Format:</span>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <button type="button" class="btn btn-outline-success btn-sm py-0.5 px-2 active fw-semibold" id="tab_aadhaar_both" onclick="switchAadhaarFormat('both')">All Options</button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm py-0.5 px-2 fw-semibold" id="tab_aadhaar_card" onclick="switchAadhaarFormat('card')">Physical Card (Front & Back)</button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm py-0.5 px-2 fw-semibold" id="tab_aadhaar_ecard" onclick="switchAadhaarFormat('ecard')">e-Card (Single PDF/Doc)</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-muted small mb-2" style="font-size: 11px;">
+                            <i class="fas fa-info-circle text-primary me-1"></i> Upload the <strong>Front & Back</strong> of your physical card, OR your digital <strong>e-Aadhaar / e-Card</strong> (or all three).
+                        </div>
                         <div class="row g-3">
                             <!-- Front Side -->
-                            <div class="col-md-6">
+                            <div class="col-md-4" id="col_aadhar_front">
                                 <div class="upload-card-box" onclick="document.getElementById('aadhar_front').click();">
-                                    <div class="upload-icon"><i class="fas fa-upload"></i></div>
-                                    <div class="upload-label-title">Front Side <span class="text-danger">*</span></div>
-                                    <div class="upload-hint-text">Clear photo of Aadhaar front (Max 1MB)</div>
+                                    <div class="upload-icon"><i class="fas fa-id-card"></i></div>
+                                    <div class="upload-label-title">Aadhaar Front <span class="text-danger" id="req_star_front">*</span></div>
+                                    <div class="upload-hint-text">Photo of card front (Max 1MB)</div>
                                     <span class="btn-upload-file">Upload file</span>
                                     <input type="file" id="aadhar_front" name="aadhar_front" accept="image/*,.pdf"
                                         style="display:none;" {{ $isFarmer ? '' : 'disabled' }} onchange="uploadFileAjax(this, 'aadhar_front', 'file_name_aadhar_front', 'aadhar_front_path')">
@@ -346,15 +381,27 @@
                                 </div>
                             </div>
                             <!-- Back Side -->
-                            <div class="col-md-6">
+                            <div class="col-md-4" id="col_aadhar_back">
                                 <div class="upload-card-box" onclick="document.getElementById('aadhar_back').click();">
-                                    <div class="upload-icon"><i class="fas fa-upload"></i></div>
-                                    <div class="upload-label-title">Back Side <span class="text-danger">*</span></div>
-                                    <div class="upload-hint-text">Clear photo of Aadhaar back (Max 1MB)</div>
+                                    <div class="upload-icon"><i class="fas fa-id-card"></i></div>
+                                    <div class="upload-label-title">Aadhaar Back <span class="text-danger" id="req_star_back">*</span></div>
+                                    <div class="upload-hint-text">Photo of card back (Max 1MB)</div>
                                     <span class="btn-upload-file">Upload file</span>
                                     <input type="file" id="aadhar_back" name="aadhar_back" accept="image/*,.pdf"
                                         style="display:none;" {{ $isFarmer ? '' : 'disabled' }} onchange="uploadFileAjax(this, 'aadhar_back', 'file_name_aadhar_back', 'aadhar_back_path')">
                                     <div id="file_name_aadhar_back" class="selected-filename"></div>
+                                </div>
+                            </div>
+                            <!-- e-Card (e-Aadhaar) -->
+                            <div class="col-md-4" id="col_aadhar_ecard">
+                                <div class="upload-card-box" onclick="document.getElementById('aadhar_ecard').click();">
+                                    <div class="upload-icon"><i class="fas fa-file-invoice text-success"></i></div>
+                                    <div class="upload-label-title">Aadhaar e-Card <span class="text-danger" id="req_star_ecard">*</span></div>
+                                    <div class="upload-hint-text">Digital e-Aadhaar PDF / scan (Max 1MB)</div>
+                                    <span class="btn-upload-file">Upload file</span>
+                                    <input type="file" id="aadhar_ecard" name="aadhar_ecard" accept="image/*,.pdf"
+                                        style="display:none;" {{ $isFarmer ? '' : 'disabled' }} onchange="uploadFileAjax(this, 'aadhar_ecard', 'file_name_aadhar_ecard', 'aadhar_ecard_path')">
+                                    <div id="file_name_aadhar_ecard" class="selected-filename"></div>
                                 </div>
                             </div>
                         </div>
@@ -528,6 +575,63 @@
                     ctrl.required = false;
                 });
             }
+        }
+
+        window.currentAadhaarMode = 'both';
+        function switchAadhaarFormat(mode) {
+            window.currentAadhaarMode = mode;
+            const btnBoth = document.getElementById('tab_aadhaar_both');
+            const btnCard = document.getElementById('tab_aadhaar_card');
+            const btnEcard = document.getElementById('tab_aadhaar_ecard');
+            const colFront = document.getElementById('col_aadhar_front');
+            const colBack = document.getElementById('col_aadhar_back');
+            const colEcard = document.getElementById('col_aadhar_ecard');
+            const starFront = document.getElementById('req_star_front');
+            const starBack = document.getElementById('req_star_back');
+            const starEcard = document.getElementById('req_star_ecard');
+
+            [btnBoth, btnCard, btnEcard].forEach(b => {
+                if (b) {
+                    b.classList.remove('btn-outline-success', 'active');
+                    b.classList.add('btn-outline-secondary');
+                }
+            });
+
+            if (mode === 'card') {
+                if (btnCard) {
+                    btnCard.classList.remove('btn-outline-secondary');
+                    btnCard.classList.add('btn-outline-success', 'active');
+                }
+                if (colFront) { colFront.style.display = 'block'; colFront.className = 'col-md-6'; }
+                if (colBack) { colBack.style.display = 'block'; colBack.className = 'col-md-6'; }
+                if (colEcard) { colEcard.style.display = 'none'; }
+                if (starFront) starFront.style.display = 'inline';
+                if (starBack) starBack.style.display = 'inline';
+                if (starEcard) starEcard.style.display = 'none';
+            } else if (mode === 'ecard') {
+                if (btnEcard) {
+                    btnEcard.classList.remove('btn-outline-secondary');
+                    btnEcard.classList.add('btn-outline-success', 'active');
+                }
+                if (colFront) { colFront.style.display = 'none'; }
+                if (colBack) { colBack.style.display = 'none'; }
+                if (colEcard) { colEcard.style.display = 'block'; colEcard.className = 'col-md-12'; }
+                if (starFront) starFront.style.display = 'none';
+                if (starBack) starBack.style.display = 'none';
+                if (starEcard) starEcard.style.display = 'inline';
+            } else {
+                if (btnBoth) {
+                    btnBoth.classList.remove('btn-outline-secondary');
+                    btnBoth.classList.add('btn-outline-success', 'active');
+                }
+                if (colFront) { colFront.style.display = 'block'; colFront.className = 'col-md-4'; }
+                if (colBack) { colBack.style.display = 'block'; colBack.className = 'col-md-4'; }
+                if (colEcard) { colEcard.style.display = 'block'; colEcard.className = 'col-md-4'; }
+                if (starFront) starFront.style.display = 'inline';
+                if (starBack) starBack.style.display = 'inline';
+                if (starEcard) starEcard.style.display = 'inline';
+            }
+            checkFormValidity();
         }
 
         // AJAX Document Upload Handler
@@ -732,20 +836,47 @@
                     missing.push('Account Holder Name');
                 }
 
-                // Aadhaar Front Side Upload
+                // Aadhaar Card & e-Card Upload Verification
                 const frontPath = document.getElementById('aadhar_front_path') ? document.getElementById('aadhar_front_path').value : '';
                 const frontFile = document.getElementById('aadhar_front') && document.getElementById('aadhar_front').files.length > 0;
-                if (!frontPath && !frontFile) {
-                    isValid = false;
-                    missing.push('Aadhaar Front Side Upload');
-                }
+                const hasFront = Boolean(frontPath || frontFile);
 
-                // Aadhaar Back Side Upload
                 const backPath = document.getElementById('aadhar_back_path') ? document.getElementById('aadhar_back_path').value : '';
                 const backFile = document.getElementById('aadhar_back') && document.getElementById('aadhar_back').files.length > 0;
-                if (!backPath && !backFile) {
-                    isValid = false;
-                    missing.push('Aadhaar Back Side Upload');
+                const hasBack = Boolean(backPath || backFile);
+
+                const ecardPath = document.getElementById('aadhar_ecard_path') ? document.getElementById('aadhar_ecard_path').value : '';
+                const ecardFile = document.getElementById('aadhar_ecard') && document.getElementById('aadhar_ecard').files.length > 0;
+                const hasEcard = Boolean(ecardPath || ecardFile);
+
+                const aadhaarMode = window.currentAadhaarMode || 'both';
+
+                if (aadhaarMode === 'ecard') {
+                    if (!hasEcard) {
+                        isValid = false;
+                        missing.push('Aadhaar e-Card Upload');
+                    }
+                } else if (aadhaarMode === 'card') {
+                    if (!hasFront) {
+                        isValid = false;
+                        missing.push('Aadhaar Front Side Upload');
+                    }
+                    if (!hasBack) {
+                        isValid = false;
+                        missing.push('Aadhaar Back Side Upload');
+                    }
+                } else {
+                    // 'both' mode: satisfies if e-Card is uploaded OR (Front AND Back are uploaded)
+                    const hasValidAadhaar = hasEcard || (hasFront && hasBack);
+                    if (!hasValidAadhaar) {
+                        isValid = false;
+                        if (!hasFront && !hasBack && !hasEcard) {
+                            missing.push('Aadhaar Card (Front/Back) or e-Card Upload');
+                        } else if (!hasEcard && (!hasFront || !hasBack)) {
+                            if (!hasFront) missing.push('Aadhaar Front Side');
+                            if (!hasBack) missing.push('Aadhaar Back Side (or upload e-Card)');
+                        }
+                    }
                 }
             }
 

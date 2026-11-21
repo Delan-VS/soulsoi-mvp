@@ -240,6 +240,19 @@
                             @endif
                         </td>
                     </tr>
+                    @if($farmer->aadhar_ecard_path || (!$farmer->aadhar_front_path && !$farmer->aadhar_back_path))
+                    <tr>
+                        <td><strong>Aadhaar e-Card</strong></td>
+                        <td>{{ $farmer->aadhar_ecard_path ? basename($farmer->aadhar_ecard_path) : 'Not Uploaded' }}</td>
+                        <td>
+                            @if($farmer->aadhar_ecard_path)
+                                <span class="text-success fw-bold"><i class="fas fa-check-circle me-1"></i> Uploaded</span>
+                            @else
+                                <span class="text-muted fw-bold"><i class="fas fa-minus-circle me-1"></i> Optional</span>
+                            @endif
+                        </td>
+                    </tr>
+                    @endif
                     <tr>
                         <td><strong>PAN Card</strong></td>
                         <td>{{ $farmer->pan_card_path ? basename($farmer->pan_card_path) : 'Not Uploaded' }}</td>

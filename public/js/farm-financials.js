@@ -43,6 +43,18 @@
             this.recalculateAll();
         },
 
+        manualTotalBudget: null,
+
+        onManualTotalBudgetInput: function (val) {
+            const num = parseFloat(val);
+            if (!isNaN(num) && num > 0) {
+                this.manualTotalBudget = num;
+            } else {
+                this.manualTotalBudget = null;
+            }
+            this.recalculateAll();
+        },
+
         bindEvents: function () {
             const self = this;
 
@@ -50,12 +62,12 @@
             const watchedInputIds = [
                 'wiz_acres',
                 'wiz_primary_crop',
+                'wiz_total_budget',
                 'wiz_your_contribution',
                 'wiz_expected_yield_kg',
                 'wiz_expected_price_kg',
                 'wiz_yielding_period',
                 'wiz_crop_cycle_days',
-                'wiz_toggle_shortfall',
                 'wiz_is_roi_overridden',
                 'wiz_roi',
                 'wiz_override_reason'
@@ -164,15 +176,27 @@
                 }
             });
 
-            // Update budget total display & hidden fields
+            const totalBudgetInput = document.getElementById('wiz_total_budget');
+            if (this.manualTotalBudget !== null && this.manualTotalBudget > 0) {
+                totalBudget = this.manualTotalBudget;
+                if (totalBudgetInput && document.activeElement !== totalBudgetInput) {
+                    totalBudgetInput.value = totalBudget;
+                }
+            } else if (totalBudget > 0) {
+                if (totalBudgetInput) totalBudgetInput.value = totalBudget;
+            } else if (totalBudgetInput && parseFloat(totalBudgetInput.value) > 0) {
+                totalBudget = parseFloat(totalBudgetInput.value);
+            } else {
+                totalBudget = 350000;
+                if (totalBudgetInput) totalBudgetInput.value = totalBudget;
+            }
+
+            // Update budget total display in table footer
             const budgetTotalDisplay = document.getElementById('budget_total_display');
             if (budgetTotalDisplay) budgetTotalDisplay.textContent = this.config.currency_symbol + this.formatMoney(totalBudget);
 
             const jsonEl = document.getElementById('budget_breakdown_json');
             if (jsonEl) jsonEl.value = JSON.stringify(items);
-
-            const totalBudgetHidden = document.getElementById('wiz_total_budget');
-            if (totalBudgetHidden) totalBudgetHidden.value = totalBudget;
 
             const totalBudgetDisplay = document.getElementById('wiz_total_budget_display');
             if (totalBudgetDisplay) totalBudgetDisplay.textContent = this.config.currency_symbol + this.formatMoney(totalBudget);

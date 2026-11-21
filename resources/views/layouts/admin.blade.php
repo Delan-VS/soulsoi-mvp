@@ -67,80 +67,138 @@
             color: #94a3b8 !important;
         }
 
+        html {
+            font-size: 16.5px;
+        }
+
         body {
             color: var(--text-primary);
             background-color: var(--bg-surface);
             font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            line-height: 1.55;
             -webkit-font-smoothing: antialiased;
         }
 
-        /* Global Smaller Heading Font Sizes */
+        /* Global Crisp Heading Font Sizes - Scaled up for Enhanced Readability */
         h1,
         .h1 {
-            font-size: 1.45rem !important;
+            font-size: 1.68rem !important;
             line-height: 1.3;
         }
 
         h2,
         .h2 {
-            font-size: 1.3rem !important;
+            font-size: 1.48rem !important;
             line-height: 1.3;
         }
 
         h3,
         .h3 {
-            font-size: 1.15rem !important;
+            font-size: 1.32rem !important;
             line-height: 1.35;
         }
 
         h4,
         .h4 {
-            font-size: 1.05rem !important;
+            font-size: 1.2rem !important;
             line-height: 1.4;
         }
 
         h5,
         .h5 {
-            font-size: 0.95rem !important;
+            font-size: 1.1rem !important;
             line-height: 1.4;
         }
 
         h6,
         .h6 {
-            font-size: 0.85rem !important;
+            font-size: 0.98rem !important;
             line-height: 1.4;
         }
 
         .display-1 {
-            font-size: 2.1rem !important;
+            font-size: 2.3rem !important;
         }
 
         .display-2 {
-            font-size: 1.85rem !important;
+            font-size: 2.05rem !important;
         }
 
         .display-3 {
-            font-size: 1.65rem !important;
+            font-size: 1.85rem !important;
         }
 
         .display-4 {
-            font-size: 1.45rem !important;
+            font-size: 1.65rem !important;
         }
 
         .display-5 {
-            font-size: 1.3rem !important;
+            font-size: 1.45rem !important;
         }
 
         .display-6 {
-            font-size: 1.15rem !important;
+            font-size: 1.25rem !important;
         }
 
         .modal-title {
-            font-size: 1.1rem !important;
+            font-size: 1.2rem !important;
         }
 
         .card-title {
-            font-size: 1.05rem !important;
+            font-size: 1.15rem !important;
+        }
+
+        /* General Typography Scaling */
+        p, .table td, .table th {
+            font-size: 0.96rem;
+        }
+
+        .sidebar .nav-link {
+            font-size: 0.96rem;
+        }
+
+        .form-label, label {
+            font-size: 0.92rem;
+        }
+
+        .form-control, .form-select {
+            font-size: 0.96rem;
+        }
+
+        .form-control-sm, .form-select-sm {
+            font-size: 0.88rem;
+        }
+
+        .btn {
+            font-size: 0.92rem;
+        }
+
+        .btn-sm {
+            font-size: 0.84rem;
+        }
+
+        .badge {
+            font-size: 0.82rem;
+            letter-spacing: 0.3px;
+        }
+
+        /* Lift tiny inline font sizes (e.g. 9px, 10px, 11px) to a comfortable minimum */
+        [style*="font-size: 9px"],
+        [style*="font-size: 9.5px"],
+        [style*="font-size: 10px"],
+        [style*="font-size: 10.5px"] {
+            font-size: 11.5px !important;
+        }
+
+        [style*="font-size: 11px"],
+        [style*="font-size: 11.5px"],
+        [style*="font-size: 12px"] {
+            font-size: 13.2px !important;
+        }
+
+        [style*="font-size: 13px"] {
+            font-size: 14.2px !important;
         }
 
         .sidebar {

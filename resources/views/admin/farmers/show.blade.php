@@ -502,6 +502,19 @@
                             @endif
                         </div>
 
+                        <!-- 2b. Aadhaar e-Card -->
+                        <div class="form-check mb-2 d-flex align-items-center justify-content-between">
+                            <div>
+                                <input class="form-check-input doc-checklist-check me-2" type="checkbox" id="check_aadhar_ecard">
+                                <label class="form-check-label text-dark fw-semibold" for="check_aadhar_ecard" style="font-size: 12px;">Aadhaar e-Card</label>
+                            </div>
+                            @if($farmer->aadhar_ecard_path)
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-0.5" style="font-size: 10px;">Uploaded</span>
+                            @else
+                                <span class="badge bg-secondary bg-opacity-10 text-muted border border-secondary border-opacity-25 px-2 py-0.5" style="font-size: 10px;">Not Provided</span>
+                            @endif
+                        </div>
+
                         <!-- 3. PAN Card -->
                         <div class="form-check mb-2 d-flex align-items-center justify-content-between">
                             <div>
@@ -585,6 +598,16 @@
                         </a>
                     @endif
 
+                    @if($farmer->aadhar_ecard_path)
+                        <a href="{{ route('admin.farmers.download', [$farmer, base64_encode($farmer->aadhar_ecard_path)]) }}" target="_blank" class="p-2.5 rounded-3 bg-light border d-flex justify-content-between align-items-center text-decoration-none">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="fas fa-file-invoice text-success"></i>
+                                <span class="fw-semibold text-dark" style="font-size: 12px;">Aadhaar e-Card (Digital Copy)</span>
+                            </div>
+                            <i class="fas fa-external-link-alt text-muted" style="font-size: 11px;"></i>
+                        </a>
+                    @endif
+
                     @if($farmer->pan_card_path)
                         <a href="{{ route('admin.farmers.download', [$farmer, base64_encode($farmer->pan_card_path)]) }}" target="_blank" class="p-2.5 rounded-3 bg-light border d-flex justify-content-between align-items-center text-decoration-none">
                             <div class="d-flex align-items-center gap-2">
@@ -625,7 +648,7 @@
                         </a>
                     @endif
 
-                    @if(!$farmer->aadhar_front_path && !$farmer->aadhar_back_path && !$farmer->pan_card_path && !$farmer->bank_proof_path && !$farmer->farm_ownership_doc_path && !$farmer->land_certificate_path)
+                    @if(!$farmer->aadhar_front_path && !$farmer->aadhar_back_path && !$farmer->aadhar_ecard_path && !$farmer->pan_card_path && !$farmer->bank_proof_path && !$farmer->farm_ownership_doc_path && !$farmer->land_certificate_path)
                         <div class="text-muted text-center py-3" style="font-size: 12px;">
                             <i class="fas fa-info-circle me-1"></i> Standard verification documents processed electronically.
                         </div>

@@ -28,18 +28,47 @@ class LoginController extends Controller
 
         if (Auth::attempt($credentials)) {
             $user = Auth::user();
-            if ($user->investor_status === 'pending' && !$user->is_admin) {
-                Auth::logout();
-                return back()->withErrors([
-                    'email' => 'Your investor account is pending admin approval.',
-                ])->onlyInput('email');
+
+            // Administrator accounts always have full access
+            if ($user->is_admin) {
+                $request->session()->regenerate();
+                return redirect()->intended(route('admin.dashboard'));
             }
 
-            if ($user->investor_status === 'rejected' && !$user->is_admin) {
-                Auth::logout();
-                return back()->withErrors([
-                    'email' => 'Your investor account application has been rejected by admin.',
-                ])->onlyInput('email');
+            // 1. Farmer Account Approval Check
+            if ($user->farmer) {
+                $farmerStatus = strtolower(trim($user->farmer->overall_status ?? 'pending'));
+
+                if ($farmerStatus === 'rejected') {
+                    Auth::logout();
+                    return back()->withErrors([
+                        'email' => 'Your farmer account application has been rejected by the administrator.',
+                    ])->onlyInput('email');
+                }
+
+                if ($farmerStatus !== 'approved') {
+                    Auth::logout();
+                    return back()->withErrors([
+                        'email' => 'Your farmer account is pending admin verification and approval. You cannot sign in until an administrator approves your account.',
+                    ])->onlyInput('email');
+                }
+            } else {
+                // 2. Investor Account Approval Check (for users without a farmer profile)
+                $investorStatus = strtolower(trim($user->investor_status ?? 'pending'));
+
+                if ($investorStatus === 'rejected') {
+                    Auth::logout();
+                    return back()->withErrors([
+                        'email' => 'Your investor account application has been rejected by the administrator.',
+                    ])->onlyInput('email');
+                }
+
+                if ($investorStatus !== 'approved') {
+                    Auth::logout();
+                    return back()->withErrors([
+                        'email' => 'Your investor account is pending admin verification and approval. You cannot sign in until an administrator approves your account.',
+                    ])->onlyInput('email');
+                }
             }
 
             $request->session()->regenerate();

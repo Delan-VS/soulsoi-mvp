@@ -49,6 +49,7 @@ class OnboardingController extends Controller
             'ifsc_code' => ['nullable', 'string', 'regex:/^[A-Za-z]{4}0[A-Za-z0-9]{6}$/'],
             'aadhar_front' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:1024',
             'aadhar_back' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:1024',
+            'aadhar_ecard' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:1024',
             'pan_card' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:1024',
             'land_certificate' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:1024',
         ];
@@ -59,6 +60,7 @@ class OnboardingController extends Controller
             'ifsc_code.regex' => 'IFSC code must be an 11-character valid code (e.g. SBIN0001234).',
             'aadhar_front.max' => 'Aadhaar front file size must not exceed 1MB.',
             'aadhar_back.max' => 'Aadhaar back file size must not exceed 1MB.',
+            'aadhar_ecard.max' => 'Aadhaar e-Card file size must not exceed 1MB.',
             'pan_card.max' => 'PAN card file size must not exceed 1MB.',
             'land_certificate.max' => 'Additional document file size must not exceed 1MB.',
         ];
@@ -76,23 +78,37 @@ class OnboardingController extends Controller
             $farmer->full_name = $request->full_name;
             Auth::user()->update(['name' => $request->full_name]);
         }
-        if ($request->has('dob') && $request->dob) $farmer->dob = $request->dob;
-        if ($request->has('aadhar_number') && $request->aadhar_number) $farmer->aadhar_number = $request->aadhar_number;
-        if ($request->has('address') && $request->address) $farmer->address = $request->address;
-        if ($request->has('village') && $request->village) $farmer->village = $request->village;
-        if ($request->has('district') && $request->district) $farmer->district = $request->district;
-        if ($request->has('state') && $request->state) $farmer->state = $request->state;
-        if ($request->has('pincode') && $request->pincode) $farmer->pincode = $request->pincode;
-        if ($request->has('bank_name') && $request->bank_name) $farmer->bank_name = $request->bank_name;
-        if ($request->has('account_holder_name') && $request->account_holder_name) $farmer->account_holder_name = $request->account_holder_name;
-        if ($request->has('account_number') && $request->account_number) $farmer->account_number = $request->account_number;
-        if ($request->has('ifsc_code') && $request->ifsc_code) $farmer->ifsc_code = strtoupper(trim($request->ifsc_code));
+        if ($request->has('dob') && $request->dob)
+            $farmer->dob = $request->dob;
+        if ($request->has('aadhar_number') && $request->aadhar_number)
+            $farmer->aadhar_number = $request->aadhar_number;
+        if ($request->has('address') && $request->address)
+            $farmer->address = $request->address;
+        if ($request->has('village') && $request->village)
+            $farmer->village = $request->village;
+        if ($request->has('district') && $request->district)
+            $farmer->district = $request->district;
+        if ($request->has('state') && $request->state)
+            $farmer->state = $request->state;
+        if ($request->has('pincode') && $request->pincode)
+            $farmer->pincode = $request->pincode;
+        if ($request->has('bank_name') && $request->bank_name)
+            $farmer->bank_name = $request->bank_name;
+        if ($request->has('account_holder_name') && $request->account_holder_name)
+            $farmer->account_holder_name = $request->account_holder_name;
+        if ($request->has('account_number') && $request->account_number)
+            $farmer->account_number = $request->account_number;
+        if ($request->has('ifsc_code') && $request->ifsc_code)
+            $farmer->ifsc_code = strtoupper(trim($request->ifsc_code));
 
         if ($request->hasFile('aadhar_front')) {
             $farmer->aadhar_front_path = $request->file('aadhar_front')->store('farmers/documents', 'public');
         }
         if ($request->hasFile('aadhar_back')) {
             $farmer->aadhar_back_path = $request->file('aadhar_back')->store('farmers/documents', 'public');
+        }
+        if ($request->hasFile('aadhar_ecard')) {
+            $farmer->aadhar_ecard_path = $request->file('aadhar_ecard')->store('farmers/documents', 'public');
         }
         if ($request->hasFile('pan_card')) {
             $farmer->pan_card_path = $request->file('pan_card')->store('farmers/documents', 'public');

@@ -9,14 +9,28 @@
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        html {
+            font-size: 16.5px;
+        }
         body {
             background-color: #F1EFE8;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-size: 1rem;
+            line-height: 1.55;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 2rem 1rem;
+        }
+        .form-label, label {
+            font-size: 0.95rem;
+        }
+        .form-control, .form-select {
+            font-size: 0.98rem;
+        }
+        .btn {
+            font-size: 0.96rem;
         }
         .login-card {
             border: 1px solid #e0ddd4;

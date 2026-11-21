@@ -108,34 +108,52 @@ class DashboardController extends Controller
             }
         }
 
-        return redirect()->route('admin.dashboard', ['tab' => 'investors'])->with('success', 'Investment of ₹' . number_format($investment->amount) . ' has been approved successfully.');
+        return back()->with('success', 'Investment of ₹' . number_format($investment->amount) . ' has been approved successfully.');
     }
 
     public function storeInvestment(Request $request)
     {
         $request->validate([
             'farm_id' => 'required|exists:farms,id',
+            'user_id' => 'nullable|exists:users,id',
             'amount' => 'required|numeric|min:100',
             'payment_method' => 'nullable|string',
+            'status' => 'nullable|in:pending,approved',
         ]);
 
         $farm = Farm::findOrFail($request->farm_id);
-        $amount = $request->amount;
+        $amount = (float) $request->amount;
         $target = ($farm->funding_target > 0) ? $farm->funding_target : 350000;
         $equity = min(100, round(($amount / $target) * 100, 2));
 
         $investment = new Investment();
-        $investment->user_id = auth()->id();
+        $investment->user_id = $request->filled('user_id') ? $request->user_id : auth()->id();
         $investment->farm_id = $farm->id;
         $investment->amount = $amount;
         $investment->equity_share = $equity;
-        $investment->status = 'pending';
+
+        $status = ($request->input('status') === 'approved' || (auth()->user()?->is_admin && $request->input('status') !== 'pending')) ? 'approved' : 'pending';
+        $investment->status = $status;
+
         if (\Illuminate\Support\Facades\Schema::hasColumn('investments', 'payment_method')) {
-            $investment->payment_method = $request->input('payment_method', 'UPI');
+            $investment->payment_method = $request->input('payment_method', 'Bank Transfer');
         }
         $investment->save();
 
-        return redirect(route('admin.dashboard') . '#investments')->with('success', 'Investment pledge of ₹' . number_format($amount) . ' submitted successfully! Awaiting admin payment verification.');
+        if ($status === 'approved') {
+            $farm->increment('funding_raised', $amount);
+            $farm->increment('investor_count', 1);
+            if ($farm->funding_target > 0 && $farm->funding_raised >= $farm->funding_target) {
+                $farm->update(['funding_status' => 'closed']);
+            }
+        }
+
+        if ($request->filled('redirect_to_farm')) {
+            return redirect(route('admin.farms.show', $farm->id) . '?tab=investors#investors')
+                ->with('success', 'Investment of ₹' . number_format($amount) . ' recorded successfully!');
+        }
+
+        return redirect()->back()->with('success', 'Investment of ₹' . number_format($amount) . ' recorded successfully!');
     }
 
     public function rejectInvestment(Investment $investment)
@@ -156,7 +174,7 @@ class DashboardController extends Controller
                 ->whereIn('status', ['approved', 'active'])
                 ->sum('amount');
             $requiredFunding = (float) ($farm->funding_target ?? 0);
-            $isFunded = $confirmedInvestment > 0 && ($requiredFunding <= 0 || $confirmedInvestment >= $requiredFunding);
+            $isFunded = $confirmedInvestment > 0 || $farm->status === 'approved' || ($requiredFunding <= 0);
             $realHarvests = $farm->harvests()->where('status', '!=', 'gallery_photo')->latest()->get();
 
             if ($realHarvests->isEmpty() || !$isFunded) {

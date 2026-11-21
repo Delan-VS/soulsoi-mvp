@@ -272,12 +272,12 @@
                 <div class="bg-white p-4 rounded-3 border mb-4 shadow-sm">
                     <h5 class="text-center fw-bold text-dark mb-4" style="color: #5cc42c;">Document Uploads</h5>
 
-                    <!-- 1. Upload Aadhaar Card -->
+                    <!-- 1. Upload Aadhaar Card & e-Card -->
                     <div class="mb-4">
-                        <label class="form-label fw-bold text-dark small mb-2">Upload Aadhaar Card</label>
+                        <label class="form-label fw-bold text-dark small mb-2">Upload Aadhaar Card / e-Card</label>
                         <div class="row g-3">
                             <!-- Front Side -->
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="upload-card-box" onclick="document.getElementById('aadhar_front').click();">
                                     <div class="upload-icon"><i class="fas fa-upload"></i></div>
                                     <div class="upload-label-title">Front Side</div>
@@ -292,7 +292,7 @@
                                 </div>
                             </div>
                             <!-- Back Side -->
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="upload-card-box" onclick="document.getElementById('aadhar_back').click();">
                                     <div class="upload-icon"><i class="fas fa-upload"></i></div>
                                     <div class="upload-label-title">Back Side</div>
@@ -301,6 +301,21 @@
                                     <input type="file" id="aadhar_back" name="aadhar_back" accept="image/*,.pdf" style="display:none;" onchange="updateFileName(this, 'file_name_aadhar_back')">
                                     <div id="file_name_aadhar_back" class="selected-filename">
                                         @if($farmer->aadhar_back_path)
+                                            <i class="fas fa-check-circle me-1"></i> File Uploaded
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- e-Card (e-Aadhaar) -->
+                            <div class="col-md-4">
+                                <div class="upload-card-box" onclick="document.getElementById('aadhar_ecard').click();">
+                                    <div class="upload-icon"><i class="fas fa-file-invoice text-success"></i></div>
+                                    <div class="upload-label-title">Aadhaar e-Card</div>
+                                    <div class="upload-hint-text">Digital e-Aadhaar PDF / scan</div>
+                                    <span class="btn-upload-file">{{ $farmer->aadhar_ecard_path ? 'Change File' : 'Upload file' }}</span>
+                                    <input type="file" id="aadhar_ecard" name="aadhar_ecard" accept="image/*,.pdf" style="display:none;" onchange="updateFileName(this, 'file_name_aadhar_ecard')">
+                                    <div id="file_name_aadhar_ecard" class="selected-filename">
+                                        @if($farmer->aadhar_ecard_path)
                                             <i class="fas fa-check-circle me-1"></i> File Uploaded
                                         @endif
                                     </div>

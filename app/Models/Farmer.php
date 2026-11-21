@@ -59,6 +59,7 @@ class Farmer extends Model
         'overall_status',
         'aadhar_front_path',
         'aadhar_back_path',
+        'aadhar_ecard_path',
         'pan_card_path',
         'bank_proof_path',
         'farm_ownership_doc_path',

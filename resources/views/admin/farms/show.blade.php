@@ -1863,14 +1863,20 @@
                 $sumEstYield = $farm->harvests ? $farm->harvests->sum('estimated_yield') : 0;
                 $acresVal = floatval($farm->total_acres ?? 1);
                 
+                $fmtYield = function($v) {
+                    if ($v === null || $v === '') return '—';
+                    $num = (float)$v;
+                    return (fmod($num, 1) == 0) ? number_format($num, 0) : number_format($num, 2);
+                };
+
                 // 1. Current Yield Est. (Dynamic)
                 if ($sumActualYield > 0) {
-                    $displayYieldVal = number_format($sumActualYield, 1) . ' <span style="font-size: 14px;" class="text-muted fw-normal">Tons (Harvested)</span>';
+                    $displayYieldVal = $fmtYield($sumActualYield) . ' <span style="font-size: 14px;" class="text-muted fw-normal">Tons (Harvested)</span>';
                 } elseif ($sumEstYield > 0) {
-                    $displayYieldVal = number_format($sumEstYield, 1) . ' <span style="font-size: 14px;" class="text-muted fw-normal">Tons (Estimated)</span>';
+                    $displayYieldVal = $fmtYield($sumEstYield) . ' <span style="font-size: 14px;" class="text-muted fw-normal">Tons (Estimated)</span>';
                 } else {
                     $cropYieldMultiplier = str_contains(strtolower($farm->primary_crop ?? ''), 'paddy') || str_contains(strtolower($farm->primary_crop ?? ''), 'rice') ? 2.5 : (str_contains(strtolower($farm->primary_crop ?? ''), 'banana') ? 12 : 5);
-                    $displayYieldVal = number_format(max(2, $acresVal * $cropYieldMultiplier), 1) . ' <span style="font-size: 14px;" class="text-muted fw-normal">Tons (Est)</span>';
+                    $displayYieldVal = $fmtYield(max(2, $acresVal * $cropYieldMultiplier)) . ' <span style="font-size: 14px;" class="text-muted fw-normal">Tons (Est)</span>';
                 }
 
                 // 2. Crop Health Index (Dynamic)
@@ -2280,14 +2286,17 @@
                                 <h5 class="fw-bold text-dark mb-1"><i class="fas fa-book me-2 text-primary"></i>Member Investment Ledger</h5>
                                 <p class="text-muted mb-0" style="font-size: 12px;">Complete record of all stakeholders and their positions.</p>
                             </div>
-                            <!-- Filters & Sort -->
-                            <div class="d-flex gap-2">
-                                <select class="form-select form-select-sm shadow-sm" style="width: 130px; border-radius: 8px;">
+                            <!-- Actions, Filters & Sort -->
+                            <div class="d-flex align-items-center gap-2">
+                                <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1.5 fw-bold shadow-sm" style="background-color: #064e3b; border-color: #064e3b; font-size: 11px;" data-bs-toggle="modal" data-bs-target="#addInvestmentModal">
+                                    <i class="fas fa-plus-circle me-1"></i> Record Investment
+                                </button>
+                                <select class="form-select form-select-sm shadow-sm" style="width: 120px; border-radius: 8px;">
                                     <option>Status: All</option>
                                     <option>Active</option>
                                     <option>Pending</option>
                                 </select>
-                                <select class="form-select form-select-sm shadow-sm" style="width: 130px; border-radius: 8px;">
+                                <select class="form-select form-select-sm shadow-sm" style="width: 120px; border-radius: 8px;">
                                     <option>Sort: Newest</option>
                                     <option>Sort: Amount</option>
                                     <option>Sort: Stake</option>
@@ -2436,7 +2445,8 @@
                 $invTarget = (float) ($farm->funding_target ?? 0);
                 $invFundedPercent = $invTarget > 0 ? min(100, round(($invRaised / $invTarget) * 100, 1)) : 0;
                 $isFullyFunded = $invTarget > 0 ? ($invRaised >= $invTarget) : ($invRaised > 0);
-                $canFinalizeOrExport = $hasHarvestRecord && $isFullyFunded;
+                // Allow finalizing settlement if harvest is recorded and farm has approved status or confirmed investments
+                $canFinalizeOrExport = $hasHarvestRecord && ($invRaised > 0 || $farm->status === 'approved' || $isFullyFunded);
 
                 // 2. Expenses = sum of actual expense (disbursed) records
                 $expTotal = 0.0;
@@ -2514,11 +2524,11 @@
                     : 0;
 
                 // Tooltip reason when Finalize / Export are disabled
-                $actionLockReason = !$hasHarvestRecord && !$isFullyFunded
-                    ? 'Record harvest data and reach required funding first'
-                    : (!$hasHarvestRecord
-                        ? 'Record harvest data first'
-                        : 'Farm must be fully funded (confirmed investments >= required funding) first');
+                $actionLockReason = !$hasHarvestRecord
+                    ? 'Record harvest data first'
+                    : ($invRaised <= 0 && $farm->status !== 'approved'
+                        ? 'Farm must have confirmed investments or approved status first'
+                        : '');
 
                 $hasProofDone = $farm->harvests()->whereNotNull('image_path')->count() > 0;
             ?>
@@ -2681,10 +2691,10 @@
                                             <i class="fas fa-weight-hanging text-success"></i> HARVEST YIELD
                                         </div>
                                         <div class="fw-bold text-dark" style="font-size: 13px;">
-                                            {{ $actualYieldVal !== null ? (number_format($actualYieldVal, 2) . ' Tons') : '—' }}
+                                            {{ $actualYieldVal !== null ? ($fmtYield($actualYieldVal) . ' Tons') : '—' }}
                                         </div>
                                         <div class="text-muted" style="font-size: 10px;">
-                                            Target: {{ $expYieldVal !== null ? (number_format($expYieldVal, 2) . ' Tons (' . $progressPercent . '%)') : '—' }}
+                                            Target: {{ $expYieldVal !== null ? ($fmtYield($expYieldVal) . ' Tons (' . $progressPercent . '%)') : '—' }}
                                         </div>
                                     </div>
                                 </div>
@@ -2757,7 +2767,7 @@
                                 <span class="text-muted fw-semibold" style="font-size: 11px;">Produce Harvest Target Progress</span>
                                 <span class="fw-bold text-dark" style="font-size: 11px;">
                                     @if($actualYieldVal !== null && $expYieldVal !== null && $expYieldVal > 0)
-                                        {{ $progressPercent }}% of Target Collected ({{ number_format($actualYieldVal, 2) }} / {{ number_format($expYieldVal, 2) }} Tons)
+                                        {{ $progressPercent }}% of Target Collected ({{ $fmtYield($actualYieldVal) }} / {{ $fmtYield($expYieldVal) }} Tons)
                                     @else
                                         0% of Target Collected (—)
                                     @endif
@@ -2807,7 +2817,7 @@
                                                         <div class="fw-semibold text-dark">{{ $hRec->quality_grade ?? '—' }}</div>
                                                         <div class="text-muted" style="font-size: 10px;">{{ $hRec->market_name ?? '—' }}</div>
                                                     </td>
-                                                    <td class="text-end fw-bold text-dark">{{ number_format((float) $hRec->actual_yield, 2) }}</td>
+                                                    <td class="text-end fw-bold text-dark">{{ $fmtYield($hRec->actual_yield) }}</td>
                                                     <td class="text-end text-muted">{{ $hRate > 0 ? '₹' . number_format($hRate) : '—' }}</td>
                                                     <td class="text-end fw-bold text-success">₹{{ number_format($hRev) }}</td>
                                                     <td class="text-center">
@@ -3210,18 +3220,25 @@
             </div>
 
             <!-- Settlement Actions -->
-            <div class="d-flex justify-content-end mt-4 mb-2">
+            <div class="d-flex justify-content-end align-items-center gap-3 mt-4 mb-2">
                 @if($farm->status === 'completed')
                     <button class="btn btn-secondary rounded-pill px-5 py-2.5 fw-bold text-white shadow-sm" disabled style="font-size: 13px;">
                         <i class="fas fa-check-circle me-1"></i> Settlement Completed
                     </button>
-                @else
-                    <form action="{{ route('admin.farms.settle', $farm) }}" method="POST">
+                @elseif($canFinalizeOrExport)
+                    <form action="{{ route('admin.farms.settle', $farm) }}" method="POST" onsubmit="return confirm('Are you sure you want to finalize settlement? This will lock the farm cycle and prepare investor payouts.');">
                         @csrf
                         <button type="submit" class="btn btn-dark rounded-pill px-5 py-2.5 fw-bold text-white shadow-sm" style="background: #064e3b; border-color: #064e3b; font-size: 13px;">
                             <i class="fas fa-file-signature me-1"></i> Finalize Settlement
                         </button>
                     </form>
+                @else
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="text-muted small"><i class="fas fa-info-circle me-1 text-warning"></i> {{ $actionLockReason }}</span>
+                        <button type="button" class="btn btn-secondary rounded-pill px-5 py-2.5 fw-semibold text-white shadow-sm" disabled style="font-size: 13px; opacity: 0.6; cursor: not-allowed;" title="{{ $actionLockReason }}">
+                            <i class="fas fa-lock me-1"></i> Finalize Settlement
+                        </button>
+                    </div>
                 @endif
             </div>
             @endif
@@ -3229,6 +3246,76 @@
         </div>
     </div>
 
+
+<!-- Add Investment Modal -->
+<div class="modal fade" id="addInvestmentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+            <div class="modal-header border-bottom-0 text-white p-4" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%);">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-white bg-opacity-20 rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                        <i class="fas fa-hand-holding-usd text-white fs-4"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0 text-white">Record Member Investment</h5>
+                        <small class="text-white-50">Manually record or approve investor funding for this farm</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('admin.investments.store') }}" method="POST">
+                @csrf
+                <input type="hidden" name="farm_id" value="{{ $farm->id }}">
+                <input type="hidden" name="redirect_to_farm" value="1">
+                <div class="modal-body p-4 text-dark">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-dark small">Investor Member <span class="text-danger">*</span></label>
+                        <select class="form-select rounded-3" name="user_id" required>
+                            @php
+                                $registeredInvestors = \App\Models\User::orderBy('name')->get();
+                            @endphp
+                            @foreach($registeredInvestors as $invUser)
+                                <option value="{{ $invUser->id }}">{{ $invUser->name }} ({{ $invUser->email }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-dark small">Investment Amount (₹) <span class="text-danger">*</span></label>
+                        @php
+                            $remainingTarget = max(500, (float)($farm->funding_target ?? 0) - (float)($farm->funding_raised ?? 0));
+                        @endphp
+                        <input type="number" step="any" min="100" class="form-control rounded-3" name="amount" value="{{ $remainingTarget }}" placeholder="e.g. 300000" required>
+                        <small class="text-muted mt-1 d-block">Target: ₹{{ number_format($farm->funding_target ?? 0) }} | Remaining: ₹{{ number_format($remainingTarget) }}</small>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-dark small">Payment Method</label>
+                            <select class="form-select rounded-3" name="payment_method">
+                                <option value="Bank Transfer (NEFT/RTGS)">Bank Transfer (NEFT/RTGS)</option>
+                                <option value="UPI Payment">UPI Payment</option>
+                                <option value="Cheque">Cheque</option>
+                                <option value="Cash / Direct">Cash / Direct</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-dark small">Approval Status</label>
+                            <select class="form-select rounded-3" name="status">
+                                <option value="approved">Approved (Immediate Credit)</option>
+                                <option value="pending">Pending (Awaiting Verification)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 bg-light p-3">
+                    <button type="button" class="btn btn-light rounded-pill px-4 fw-semibold" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" style="background: #064e3b; border-color: #064e3b;">
+                        <i class="fas fa-check-circle me-1"></i> Save Investment
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <!-- Add Sale Modal -->
 <div class="modal fade" id="addSaleModal" tabindex="-1" aria-hidden="true">
@@ -3258,11 +3345,11 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-semibold text-dark small">Sale Amount (₹) <span class="text-danger">*</span></label>
-                            <input type="number" step="0.01" class="form-control" name="sale_amount" placeholder="e.g. 500000" required>
+                            <input type="number" step="any" class="form-control" name="sale_amount" placeholder="e.g. 500000" required>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-semibold text-dark small">Quantity Sold <span class="text-danger">*</span></label>
-                            <input type="number" step="0.01" class="form-control" name="quantity_sold" placeholder="e.g. 10" required>
+                            <input type="number" step="any" class="form-control" name="quantity_sold" placeholder="e.g. 10" required>
                         </div>
                     </div>
                     <div class="mb-3">
@@ -3373,23 +3460,27 @@
                     <div class="row g-3 mb-3">
                         <div class="col-md-4">
                             <label class="form-label fw-semibold text-dark small">Actual Yield (Tons) <span class="text-danger">*</span></label>
-                            <input type="number" step="0.01" min="0" class="form-control" id="log_actual_yield" name="actual_yield" value="{{ old('actual_yield', $latestHarvest?->actual_yield ?? '') }}" placeholder="e.g. 2.5" required oninput="updateHarvestRevenuePreview()">
+                            <input type="number" step="any" min="0" class="form-control" id="log_actual_yield" name="actual_yield" value="{{ old('actual_yield', isset($latestHarvest?->actual_yield) ? $fmtYield($latestHarvest->actual_yield) : '') }}" placeholder="e.g. 18" required oninput="updateHarvestRevenuePreview()">
                             <div class="text-muted mt-1 fw-semibold" style="font-size: 11px;" id="log_yield_conversion_display">
                                 @if(isset($latestHarvest) && $latestHarvest?->actual_yield)
-                                    ≈ {{ number_format($latestHarvest->actual_yield * 1000) }} kg ({{ number_format($latestHarvest->actual_yield * 10, 1) }} Quintals)
+                                    @php
+                                        $qVal = (float)$latestHarvest->actual_yield * 10;
+                                        $qDisplay = (fmod($qVal, 1) == 0) ? number_format($qVal, 0) : number_format($qVal, 1);
+                                    @endphp
+                                    ≈ {{ number_format($latestHarvest->actual_yield * 1000) }} kg ({{ $qDisplay }} Quintals)
                                 @endif
                             </div>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-semibold text-dark small">Target Yield (Tons) <span class="text-danger">*</span></label>
-                            <input type="number" step="0.01" min="0.01" class="form-control" name="estimated_yield" value="{{ old('estimated_yield', $latestHarvest?->estimated_yield ?? ($expYieldVal ?? '')) }}" placeholder="e.g. 3.0" required>
+                            <input type="number" step="any" min="0.01" class="form-control" name="estimated_yield" value="{{ old('estimated_yield', isset($latestHarvest?->estimated_yield) ? $fmtYield($latestHarvest->estimated_yield) : (isset($expYieldVal) ? $fmtYield($expYieldVal) : '')) }}" placeholder="e.g. 18" required>
                             @if(isset($expYieldVal) && $expYieldVal > 0)
                                 <div class="text-muted mt-1" style="font-size: 11px;">Default from farm project target</div>
                             @endif
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-semibold text-dark small">Selling Price (₹ / Ton) <span class="text-danger">*</span></label>
-                            <input type="number" step="0.01" min="0" class="form-control" id="log_selling_price" name="selling_price" value="{{ old('selling_price', $latestHarvest?->effectiveSellingPrice() ?: '') }}" placeholder="e.g. 28000" required oninput="updateHarvestRevenuePreview()">
+                            <input type="number" step="any" min="0" class="form-control" id="log_selling_price" name="selling_price" value="{{ old('selling_price', isset($latestHarvest) && $latestHarvest->effectiveSellingPrice() ? $fmtYield($latestHarvest->effectiveSellingPrice()) : '') }}" placeholder="e.g. 25000" required oninput="updateHarvestRevenuePreview()">
                         </div>
                     </div>
 
@@ -3447,11 +3538,11 @@
                     <div class="mb-3">
                         <label class="form-label fw-semibold text-dark small">Harvest Stage <span class="text-danger">*</span></label>
                         <select class="form-select rounded-3" id="upload_harvest_stage_select" name="harvest_stage" required>
-                            <option value="Before Harvest">1. Before Harvest (Growing Field)</option>
-                            <option value="Process">2. Process (Cutting / Gathering)</option>
-                            <option value="Packing">3. Packing (Boxes / Crate Packing)</option>
-                            <option value="Transport">4. Transport (Truck Loading)</option>
-                            <option value="Final Produce">5. Final Produce (Market Produce)</option>
+                            <option value="Before Harvest">Before Harvest (Growing Field)</option>
+                            <option value="Process">Process (Cutting / Gathering)</option>
+                            <option value="Packing">Packing (Boxes / Crate Packing)</option>
+                            <option value="Transport">Transport (Truck Loading)</option>
+                            <option value="Final Produce">Final Produce (Market Produce)</option>
                         </select>
                     </div>
                     <div class="mb-3">
@@ -3505,7 +3596,8 @@
         if (convEl) {
             if (qty > 0) {
                 const kg = Math.round(qty * 1000);
-                const quintals = (qty * 10).toFixed(1);
+                const qVal = qty * 10;
+                const quintals = (qVal % 1 === 0) ? qVal : qVal.toFixed(1);
                 convEl.textContent = `≈ ${kg.toLocaleString('en-IN')} kg (${quintals} Quintals)`;
             } else {
                 convEl.textContent = '';
@@ -3730,15 +3822,15 @@
                     <div class="row g-3 mb-3">
                         <div class="col-md-4">
                             <label class="form-label text-dark fw-semibold small">Actual Yield (Tons) <span class="text-danger">*</span></label>
-                            <input type="number" step="0.01" min="0" class="form-control rounded-3" name="actual_yield" value="{{ $harvest->actual_yield }}" required>
+                            <input type="number" step="any" min="0" class="form-control rounded-3" name="actual_yield" value="{{ $fmtYield($harvest->actual_yield) }}" placeholder="e.g. 18" required>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label text-dark fw-semibold small">Target Yield (Tons) <span class="text-danger">*</span></label>
-                            <input type="number" step="0.01" min="0.01" class="form-control rounded-3" name="estimated_yield" value="{{ $harvest->estimated_yield }}" required>
+                            <input type="number" step="any" min="0.01" class="form-control rounded-3" name="estimated_yield" value="{{ $fmtYield($harvest->estimated_yield) }}" placeholder="e.g. 18" required>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label text-dark fw-semibold small">Selling Price (₹ / Ton) <span class="text-danger">*</span></label>
-                            <input type="number" step="0.01" min="0" class="form-control rounded-3" name="selling_price" value="{{ $harvest->effectiveSellingPrice() }}" required>
+                            <input type="number" step="any" min="0" class="form-control rounded-3" name="selling_price" value="{{ $fmtYield($harvest->effectiveSellingPrice()) }}" placeholder="e.g. 25000" required>
                         </div>
                     </div>
                     <div class="mb-3">

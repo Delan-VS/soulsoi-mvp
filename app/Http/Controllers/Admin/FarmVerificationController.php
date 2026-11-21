@@ -321,7 +321,7 @@ class FarmVerificationController extends Controller
                 ->whereIn('status', ['approved', 'active'])
                 ->sum('amount');
             $requiredFunding = (float) ($lockedFarm->funding_target ?? 0);
-            $isFunded = $confirmedInvestment > 0 && ($requiredFunding <= 0 || $confirmedInvestment >= $requiredFunding);
+            $isFunded = $confirmedInvestment > 0 || $lockedFarm->status === 'approved' || ($requiredFunding <= 0);
 
             $hasHarvest = $lockedFarm->harvests()
                 ->where('status', '!=', 'gallery_photo')
@@ -334,10 +334,10 @@ class FarmVerificationController extends Controller
                 ];
             }
 
-            if (!$isFunded) {
+            if (!$isFunded && $confirmedInvestment <= 0) {
                 return [
                     'status' => 'error',
-                    'message' => 'Cannot finalize settlement until the farm has confirmed funding meeting the required target.',
+                    'message' => 'Cannot finalize settlement until the farm has confirmed investments.',
                 ];
             }
 

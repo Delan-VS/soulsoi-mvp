@@ -1375,6 +1375,25 @@
                                                         @endif
                                                     </div>
                                                 </div>
+                                                <!-- Aadhaar e-Card -->
+                                                <div class="col-md-6">
+                                                    <div class="p-3 border rounded-3 bg-light">
+                                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                                            <span class="fw-bold text-dark small">Aadhaar e-Card (Digital Copy)</span>
+                                                            <span class="badge bg-secondary-subtle text-secondary"
+                                                                style="font-size: 10px;">Max 1MB</span>
+                                                        </div>
+                                                        <input type="file" class="form-control form-control-sm" name="aadhar_ecard"
+                                                            accept="image/*,.pdf">
+                                                        @if($farmer->aadhar_ecard_path)
+                                                            <div class="text-success small mt-1.5" style="font-size: 11px;">
+                                                                <i class="fas fa-check-circle me-1"></i> Currently Uploaded:
+                                                                <a href="{{ asset('storage/' . $farmer->aadhar_ecard_path) }}"
+                                                                    target="_blank" class="text-success fw-semibold">View File</a>
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                </div>
                                                 <!-- PAN Card -->
                                                 <div class="col-md-6">
                                                     <div class="p-3 border rounded-3 bg-light">
@@ -1753,8 +1772,6 @@
                                     value="{{ old('budget_breakdown', '[]') }}">
                                 <input type="hidden" name="farming_timeline" id="farming_timeline_json"
                                     value="{{ old('farming_timeline', '[]') }}">
-                                <input type="hidden" name="total_budget" id="wiz_total_budget"
-                                    value="{{ old('total_budget', '350000') }}">
                                 <input type="hidden" name="calculated_roi" id="wiz_calculated_roi"
                                     value="{{ old('calculated_roi', '28.6') }}">
                                 <input type="hidden" name="annualized_roi" id="wiz_annualized_roi"
@@ -2086,7 +2103,7 @@
                                                             <input type="number" step="100" name="expected_yield_kg" id="wiz_expected_yield_kg" class="form-control rounded-start py-2" value="{{ old('expected_yield_kg', '18000') }}" placeholder="e.g. 18000" style="font-size: 13px;" required>
                                                             <span class="input-group-text bg-light text-muted fw-semibold">kg</span>
                                                         </div>
-                                                        <div class="text-muted mt-1 fw-semibold" style="font-size: 11px;" id="wiz_yield_tons_display">≈ 18.00 Tons</div>
+                                                        <div class="text-muted mt-1 fw-semibold" style="font-size: 11px;" id="wiz_yield_tons_display">≈ 18 Tons</div>
                                                     </div>
                                                     <div class="col-sm-6">
                                                         <label class="form-label text-dark fw-semibold mb-1" style="font-size: 12px;">Selling Price (₹ / kg) <span class="text-danger">*</span></label>
@@ -2114,57 +2131,19 @@
                                                     </div>
                                                 </div>
 
-                                                <!-- Fix #5: Optional Yield Shortfall Stress Test Scenario -->
-                                                <div class="p-3 rounded-4 bg-white border">
-                                                    <div class="d-flex align-items-center justify-content-between mb-2">
-                                                        <div class="form-check form-switch mb-0">
-                                                            <input class="form-check-input" type="checkbox" name="apply_shortfall" id="wiz_toggle_shortfall" value="1">
-                                                            <label class="form-check-label fw-bold text-dark" for="wiz_toggle_shortfall" style="font-size: 12px;">
-                                                                Simulate -15% Yield Shortfall Scenario
-                                                            </label>
-                                                        </div>
-                                                        <span class="badge bg-secondary bg-opacity-10 text-secondary" style="font-size: 10px;">Downside Stress Test</span>
-                                                    </div>
-                                                    <div id="shortfall_simulation_card" style="display: none;" class="pt-2 border-top">
-                                                        <div class="d-flex justify-content-between align-items-center mb-1 text-muted" style="font-size: 11.5px;">
-                                                            <span>Stressed Yield (-15%):</span>
-                                                            <strong class="text-dark" id="stress_yield_display">15,300 kg</strong>
-                                                        </div>
-                                                        <div class="d-flex justify-content-between align-items-center mb-1 text-muted" style="font-size: 11.5px;">
-                                                            <span>Stressed Revenue:</span>
-                                                            <strong class="text-dark" id="stress_rev_display">₹3,82,500</strong>
-                                                        </div>
-                                                        <div class="d-flex justify-content-between align-items-center mb-1 text-muted" style="font-size: 11.5px;">
-                                                            <span>Stressed Net Profit:</span>
-                                                            <strong class="text-success" id="stress_profit_display">₹32,500</strong>
-                                                        </div>
-                                                        <div class="d-flex justify-content-between align-items-center pt-1 border-top" style="font-size: 12px;">
-                                                            <span class="fw-bold text-dark">Stressed Investor Return:</span>
-                                                            <span class="badge bg-warning text-dark px-2 py-1 fw-bold" id="stress_roi_badge">7.6% Cycle ROI</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Right Card: Capital Structure & Automatic Investor ROI -->
-                                        <div class="col-lg-6">
-                                            <div class="card border shadow-sm rounded-4 p-4 h-100 bg-white">
-                                                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-                                                    <h6 class="fw-bold text-dark mb-0" style="font-size: 14px;">
-                                                        <i class="fas fa-coins text-warning me-2"></i>2. Capital Structure & Automatic Investor ROI
-                                                    </h6>
-                                                    <span class="badge bg-success bg-opacity-10 text-success px-2 py-1" style="font-size: 11px;" id="calc_override_status_badge">Calculated (Pure Engine)</span>
-                                                </div>
-                                                <p class="text-muted mb-3" style="font-size: 12px;">Net profit is allocated <strong>70% to investors</strong> and <strong>30% retained by the farmer</strong> (configurable in system settings).</p>
-
                                                 <!-- Capital Parameters Grid -->
                                                 <div class="row g-2 mb-3">
                                                     <div class="col-sm-4">
                                                         <div class="p-2.5 rounded-3 bg-light border text-center">
                                                             <div class="text-muted text-uppercase" style="font-size: 9px; font-weight: 700;">TOTAL BUDGET</div>
-                                                            <div class="fw-bold text-dark fs-6 mt-1" id="wiz_total_budget_display">₹3,50,000</div>
-                                                            <div class="text-muted" style="font-size: 9px;">Sum of items</div>
+                                                            <div class="input-group input-group-sm mt-1">
+                                                                <span class="input-group-text bg-white text-muted">₹</span>
+                                                                <input type="number" step="1000" name="total_budget" id="wiz_total_budget"
+                                                                    class="form-control text-center fw-bold text-dark"
+                                                                    value="{{ old('total_budget', '350000') }}" min="1000" required
+                                                                    oninput="onManualTotalBudgetChange(this.value)">
+                                                            </div>
+                                                            <div class="text-muted" style="font-size: 9px;">Editable / Auto-synced</div>
                                                         </div>
                                                     </div>
                                                     <div class="col-sm-4">
@@ -2174,7 +2153,8 @@
                                                                 <span class="input-group-text bg-white text-muted">₹</span>
                                                                 <input type="number" name="your_contribution" id="wiz_your_contribution"
                                                                     class="form-control text-center fw-bold text-success"
-                                                                    value="{{ old('your_contribution', '50000') }}" min="0" required>
+                                                                    value="{{ old('your_contribution', '50000') }}" min="0" required
+                                                                    oninput="window.SoulSoilFinancials?.recalculateAll()">
                                                             </div>
                                                             <div class="text-muted" style="font-size: 9px;">Committed stake</div>
                                                         </div>
@@ -2331,14 +2311,14 @@
                                                 <div class="col-md-4">
                                                     <div class="p-3 rounded-3 bg-white border border-success border-opacity-25 h-100 shadow-sm">
                                                         <div class="text-muted text-uppercase fw-bold mb-1" style="font-size: 10px; letter-spacing: 0.5px;">Expected Harvest Yield</div>
-                                                        <div class="fw-bold text-success fs-5" id="wiz_step4_yield_tons">≈ 18.00 Tons</div>
+                                                        <div class="fw-bold text-success fs-5" id="wiz_step4_yield_tons">≈ 18 Tons</div>
                                                         <div class="text-muted" style="font-size: 11px;" id="wiz_step4_yield_kg">18,000 kg total</div>
                                                     </div>
                                                 </div>
                                                 <div class="col-md-4">
                                                     <div class="p-3 rounded-3 bg-white border border-success border-opacity-25 h-100 shadow-sm">
                                                         <div class="text-muted text-uppercase fw-bold mb-1" style="font-size: 10px; letter-spacing: 0.5px;">Projected Selling Price</div>
-                                                        <div class="fw-bold text-dark fs-5" id="wiz_step4_price_display">₹25.00 / kg</div>
+                                                        <div class="fw-bold text-dark fs-5" id="wiz_step4_price_display">₹25 / kg</div>
                                                         <div class="text-muted" style="font-size: 11px;" id="wiz_step4_price_ton_display">₹25,000 / Ton</div>
                                                     </div>
                                                 </div>
@@ -2455,6 +2435,11 @@
                                                     <div class="col-md-3"><input type="text" class="form-control form-control-sm stage-dur bg-white" value="1 Month" readonly></div>
                                                     <div class="col-md-1 text-center"><button type="button" class="btn btn-sm text-danger" onclick="removeStageRow(this)"><i class="fas fa-times"></i></button></div>
                                                 </div>
+                                            </div>
+                                            <!-- Timeline Stage Overlap Alert Advisory -->
+                                            <div id="timeline_overlap_alert" class="alert alert-danger py-2 px-3 rounded-3 mt-2 mb-2 border-0" style="display: none; font-size: 11.5px;">
+                                                <i class="fas fa-exclamation-triangle text-danger me-1.5"></i>
+                                                <span id="timeline_overlap_alert_text"></span>
                                             </div>
                                             <div class="d-flex justify-content-between align-items-center pt-2">
                                                 <button type="button" onclick="addStageRow()"
@@ -2702,7 +2687,7 @@
                                                 <div class="col-md-3">
                                                     <div class="text-muted text-uppercase"
                                                         style="font-size: 9px; letter-spacing: 0.5px;">EXPECTED HARVEST YIELD</div>
-                                                    <div class="fw-bold text-success fs-5" id="rev_yield_tons">18.00 Tons</div>
+                                                    <div class="fw-bold text-success fs-5" id="rev_yield_tons">18 Tons</div>
                                                     <div class="text-muted" style="font-size: 11px;" id="rev_yield_kg">18,000 kg</div>
                                                 </div>
                                                 <div class="col-md-3">
@@ -2762,25 +2747,20 @@
                                                 style="font-size: 11px;"><i class="fas fa-edit me-1"></i>Edit</button>
                                         </div>
                                         <div class="card-body p-4">
-                                            <div class="text-muted fw-bold text-uppercase mb-2"
-                                                style="font-size: 10px; letter-spacing: 0.5px;">FARM PHOTOS (4)</div>
-                                            <div class="row g-2" id="rev_photos_grid">
-                                                <div class="col-3"><img
-                                                        src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400"
-                                                        class="img-fluid rounded-3"
-                                                        style="height: 90px; width: 100%; object-fit: cover;"></div>
-                                                <div class="col-3"><img
-                                                        src="https://images.unsplash.com/photo-1592982537447-7440770cbfc9?w=400"
-                                                        class="img-fluid rounded-3"
-                                                        style="height: 90px; width: 100%; object-fit: cover;"></div>
-                                                <div class="col-3"><img
-                                                        src="https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=400"
-                                                        class="img-fluid rounded-3"
-                                                        style="height: 90px; width: 100%; object-fit: cover;"></div>
-                                                <div class="col-3"><img
-                                                        src="https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=400"
-                                                        class="img-fluid rounded-3"
-                                                        style="height: 90px; width: 100%; object-fit: cover;"></div>
+                                            <div class="text-muted fw-bold text-uppercase mb-2" id="rev_photos_label"
+                                                style="font-size: 10px; letter-spacing: 0.5px;">FARM PHOTOS</div>
+                                            <div class="row g-2 mb-3" id="rev_photos_grid">
+                                                <div class="col-12 text-muted" style="font-size: 11px;">
+                                                    <i class="fas fa-info-circle me-1"></i> No photos uploaded (a default cover image will be assigned).
+                                                </div>
+                                            </div>
+
+                                            <div class="text-muted fw-bold text-uppercase mb-2 pt-2 border-top" id="rev_docs_label"
+                                                style="font-size: 10px; letter-spacing: 0.5px;">LEGAL & VERIFICATION DOCUMENTS</div>
+                                            <div id="rev_documents_list">
+                                                <div class="text-muted" style="font-size: 11px;">
+                                                    <i class="fas fa-info-circle me-1"></i> No verification documents attached.
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -2922,13 +2902,29 @@
                         if (displayEl) displayEl.textContent = '₹' + total.toLocaleString('en-IN');
                         const jsonEl = document.getElementById('budget_breakdown_json');
                         if (jsonEl) jsonEl.value = JSON.stringify(items);
-                        const targetInput = document.getElementById('wiz_funding_target');
-                        if (updateTarget && targetInput && total > 0) {
-                            targetInput.value = total;
-                            targetInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+                        const totalBudgetInput = document.getElementById('wiz_total_budget');
+                        if (totalBudgetInput && total > 0 && document.activeElement !== totalBudgetInput) {
+                            totalBudgetInput.value = total;
                         }
 
-                        updateAutoRoi();
+                        if (window.SoulSoilFinancials) {
+                            window.SoulSoilFinancials.manualTotalBudget = null;
+                            window.SoulSoilFinancials.recalculateAll();
+                        } else {
+                            updateAutoRoi();
+                        }
+                    }
+
+                    function onManualTotalBudgetChange(val) {
+                        const total = Math.max(0, parseFloat(val) || 0);
+                        const displayEl = document.getElementById('budget_total_display');
+                        if (displayEl) displayEl.textContent = '₹' + total.toLocaleString('en-IN');
+                        if (window.SoulSoilFinancials) {
+                            window.SoulSoilFinancials.onManualTotalBudgetInput(total);
+                        } else {
+                            updateAutoRoi();
+                        }
                     }
 
                     function updateAutoRoi() {
@@ -2943,7 +2939,9 @@
                         // Unit display helpers
                         const yieldTonsEl = document.getElementById('wiz_yield_tons_display');
                         if (yieldTonsEl) {
-                            yieldTonsEl.textContent = `≈ ${(yieldKg / 1000).toFixed(2)} Tons`;
+                            const tonsVal = (yieldKg / 1000);
+                            const yieldTonsText = (tonsVal % 1 === 0) ? tonsVal : tonsVal.toFixed(2);
+                            yieldTonsEl.textContent = `≈ ${yieldTonsText} Tons`;
                         }
                         const priceTonEl = document.getElementById('wiz_price_ton_display');
                         if (priceTonEl) {
@@ -3040,7 +3038,8 @@
                         const yieldKg = parseFloat(document.getElementById('wiz_expected_yield_kg')?.value || 0);
                         const priceKg = parseFloat(document.getElementById('wiz_expected_price_kg')?.value || 0);
                         const revenue = Math.round(yieldKg * priceKg);
-                        const yieldTons = (yieldKg / 1000).toFixed(2);
+                        const tonsVal = (yieldKg / 1000);
+                        const yieldTons = (tonsVal % 1 === 0) ? tonsVal : tonsVal.toFixed(2);
 
                         const tonsEl = document.getElementById('wiz_step4_yield_tons');
                         if (tonsEl) tonsEl.textContent = `≈ ${yieldTons} Tons`;
@@ -3048,8 +3047,9 @@
                         const kgEl = document.getElementById('wiz_step4_yield_kg');
                         if (kgEl) kgEl.textContent = `${yieldKg.toLocaleString('en-IN')} kg total`;
 
+                        const priceFormatted = (priceKg % 1 === 0) ? priceKg : priceKg.toFixed(2);
                         const priceEl = document.getElementById('wiz_step4_price_display');
-                        if (priceEl) priceEl.textContent = `₹${priceKg.toFixed(2)} / kg`;
+                        if (priceEl) priceEl.textContent = `₹${priceFormatted} / kg`;
 
                         const priceTonEl = document.getElementById('wiz_step4_price_ton_display');
                         if (priceTonEl) priceTonEl.textContent = `₹${Math.round(priceKg * 1000).toLocaleString('en-IN')} / Ton`;
@@ -3111,6 +3111,39 @@
                             durInput.value = dur === 1 ? '1 Month' : `${dur} Months`;
                         }
 
+                        // Auto-chain sequential stages when end month is adjusted
+                        if (input && input.classList.contains('stage-end')) {
+                            let currRow = row;
+                            let currEnd = end;
+                            while (currRow.nextElementSibling && currRow.nextElementSibling.classList.contains('stage-row')) {
+                                const nextRow = currRow.nextElementSibling;
+                                const nextStartInput = nextRow.querySelector('.stage-start');
+                                const nextEndInput = nextRow.querySelector('.stage-end');
+                                const nextDurInput = nextRow.querySelector('.stage-dur');
+                                if (nextStartInput && nextEndInput) {
+                                    const nextStart = parseFloat(nextStartInput.value) || 0;
+                                    const nextEnd = parseFloat(nextEndInput.value) || 0;
+                                    const nextDuration = Math.max(0.5, Math.round((nextEnd - nextStart) * 10) / 10);
+                                    
+                                    // If next stage started at or before the previous end, forward chain it
+                                    if (nextStart <= currEnd || Math.abs(nextStart - (currEnd - dur)) < 0.1) {
+                                        nextStartInput.value = currEnd;
+                                        const newNextEnd = Math.round((currEnd + nextDuration) * 10) / 10;
+                                        nextEndInput.value = newNextEnd;
+                                        if (nextDurInput) {
+                                            nextDurInput.value = nextDuration === 1 ? '1 Month' : `${nextDuration} Months`;
+                                        }
+                                        currEnd = newNextEnd;
+                                        currRow = nextRow;
+                                    } else {
+                                        break;
+                                    }
+                                } else {
+                                    break;
+                                }
+                            }
+                        }
+
                         // Automatically update Yielding Period when stages change!
                         recalcTotalStagesDuration(true);
                         syncTimelineJson();
@@ -3119,21 +3152,42 @@
                     function recalcTotalStagesDuration(syncPeriod = true) {
                         let maxEnd = 0;
                         let totalDur = 0;
-                        document.querySelectorAll('.stage-row').forEach(row => {
-                            const start = parseFloat(row.querySelector('.stage-start')?.value) || 0;
-                            const end = parseFloat(row.querySelector('.stage-end')?.value) || 0;
+                        let overlaps = [];
+                        const rows = document.querySelectorAll('.stage-row');
+                        let prevEnd = 0;
+                        let prevName = '';
+
+                        rows.forEach((row, idx) => {
+                            const nameInput = row.querySelector('.stage-name');
+                            const startInput = row.querySelector('.stage-start');
+                            const endInput = row.querySelector('.stage-end');
+
+                            const name = nameInput?.value?.trim() || `Stage ${idx + 1}`;
+                            const start = parseFloat(startInput?.value) || 0;
+                            const end = parseFloat(endInput?.value) || 0;
+
+                            // Remove prior error highlights
+                            startInput?.classList.remove('border-danger', 'bg-danger-subtle');
+
+                            if (idx > 0 && start < prevEnd) {
+                                overlaps.push(`"${name}" starts at Month ${start} before "${prevName}" ends at Month ${prevEnd}`);
+                                startInput?.classList.add('border-danger', 'bg-danger-subtle');
+                            }
+
                             if (end > maxEnd) maxEnd = end;
                             if (end > start) {
                                 totalDur += (end - start);
                             }
+                            prevEnd = Math.max(prevEnd, end);
+                            prevName = name;
                         });
 
                         maxEnd = Math.round(maxEnd * 10) / 10;
                         totalDur = Math.round(totalDur * 10) / 10;
-                        const effectiveMonths = maxEnd > 0 ? maxEnd : totalDur;
+                        const effectiveMonths = (overlaps.length === 0 && maxEnd > 0) ? maxEnd : totalDur;
 
                         // AUTOMATIC SYNC: Update yielding_period automatically!
-                        if (syncPeriod && effectiveMonths > 0) {
+                        if (syncPeriod && effectiveMonths > 0 && overlaps.length === 0) {
                             const periodInput = document.getElementById('wiz_yielding_period');
                             if (periodInput && parseFloat(periodInput.value) !== effectiveMonths) {
                                 periodInput.value = effectiveMonths;
@@ -3149,14 +3203,29 @@
 
                         const targetMonths = parseFloat(document.getElementById('wiz_yielding_period')?.value) || effectiveMonths;
                         const badge = document.getElementById('wiz_timeline_comparison_badge');
-                        if (badge) {
-                            badge.textContent = `Timeline: ${effectiveMonths} / ${targetMonths} Months`;
-                            if (Math.abs(effectiveMonths - targetMonths) < 0.1 && targetMonths > 0) {
-                                badge.className = 'badge bg-success text-white px-3 py-1.5 rounded-pill fw-bold';
-                            } else if (effectiveMonths > targetMonths) {
+                        const alertBox = document.getElementById('timeline_overlap_alert');
+                        const alertText = document.getElementById('timeline_overlap_alert_text');
+
+                        if (overlaps.length > 0) {
+                            if (badge) {
+                                badge.innerHTML = `<i class="fas fa-exclamation-circle me-1"></i> Overlap: ${totalDur}m Durations / ${targetMonths}m Period`;
                                 badge.className = 'badge bg-danger text-white px-3 py-1.5 rounded-pill fw-bold';
-                            } else {
-                                badge.className = 'badge bg-warning text-dark px-3 py-1.5 rounded-pill fw-bold';
+                            }
+                            if (alertBox && alertText) {
+                                alertBox.style.display = 'block';
+                                alertText.innerHTML = `<strong>Timeline Logic Advisory:</strong> ${overlaps.join('; ')}. Individual stage durations sum to <strong>${totalDur} Months</strong>, but yielding period is set to <strong>${targetMonths} Months</strong>. Stages should be sequential.`;
+                            }
+                        } else {
+                            if (alertBox) alertBox.style.display = 'none';
+                            if (badge) {
+                                badge.textContent = `Timeline: ${effectiveMonths} / ${targetMonths} Months`;
+                                if (Math.abs(effectiveMonths - targetMonths) < 0.1 && targetMonths > 0) {
+                                    badge.className = 'badge bg-success text-white px-3 py-1.5 rounded-pill fw-bold';
+                                } else if (effectiveMonths > targetMonths) {
+                                    badge.className = 'badge bg-danger text-white px-3 py-1.5 rounded-pill fw-bold';
+                                } else {
+                                    badge.className = 'badge bg-warning text-dark px-3 py-1.5 rounded-pill fw-bold';
+                                }
                             }
                         }
 
@@ -3590,7 +3659,11 @@
                         const periodMonthsVal = parseInt(document.getElementById('wiz_yielding_period')?.value, 10) || 6;
                         const startVal = document.getElementById('wiz_start_date')?.value || '';
 
-                        if (revYieldTons) revYieldTons.textContent = (yieldKgVal / 1000).toFixed(2) + ' Tons';
+                        if (revYieldTons) {
+                            const tonsVal = (yieldKgVal / 1000);
+                            const yieldTonsText = (tonsVal % 1 === 0) ? tonsVal : tonsVal.toFixed(2);
+                            revYieldTons.textContent = yieldTonsText + ' Tons';
+                        }
                         if (revYieldKg) revYieldKg.textContent = Number(yieldKgVal).toLocaleString('en-IN') + ' kg';
                         if (revPeriod) revPeriod.textContent = periodMonthsVal + ' Months';
                         if (revCycleDays) revCycleDays.textContent = '≈ ' + (periodMonthsVal * 30) + ' Days';
@@ -3628,16 +3701,66 @@
                             document.getElementById('rev_stages_badge').textContent = `${stageCount} Stages (${periodMonthsVal} Months)`;
                         }
 
-                        // Sync uploaded photo previews dynamically!
+                        // Sync uploaded photos (Cover + Gallery) dynamically
+                        const coverInput = document.getElementById('wiz_farm_photo');
                         const photoInput = document.getElementById('wiz_farm_photos');
+                        const photosGrid = document.getElementById('rev_photos_grid');
+                        const photosLabel = document.getElementById('rev_photos_label');
+                        let totalPhotos = 0;
+                        let photosHtml = '';
+
+                        if (coverInput && coverInput.files && coverInput.files.length > 0) {
+                            totalPhotos++;
+                            const url = URL.createObjectURL(coverInput.files[0]);
+                            photosHtml += `<div class="col-3 position-relative">
+                                <img src="${url}" class="img-fluid rounded-3 shadow-sm border border-success border-2" style="height: 90px; width: 100%; object-fit: cover;">
+                                <span class="badge bg-success position-absolute top-0 start-0 m-1 shadow-sm" style="font-size: 8px;">Cover</span>
+                            </div>`;
+                        }
+
                         if (photoInput && photoInput.files && photoInput.files.length > 0) {
-                            const files = Array.from(photoInput.files);
-                            let html = '';
-                            files.forEach(f => {
+                            Array.from(photoInput.files).forEach(f => {
+                                totalPhotos++;
                                 const url = URL.createObjectURL(f);
-                                html += `<div class="col-3"><img src="${url}" class="img-fluid rounded-3 shadow-sm" style="height: 90px; width: 100%; object-fit: cover;"></div>`;
+                                photosHtml += `<div class="col-3">
+                                    <img src="${url}" class="img-fluid rounded-3 shadow-sm" style="height: 90px; width: 100%; object-fit: cover;">
+                                </div>`;
                             });
-                            if (document.getElementById('rev_photos_grid')) document.getElementById('rev_photos_grid').innerHTML = html;
+                        }
+
+                        if (photosGrid) {
+                            photosGrid.innerHTML = totalPhotos > 0 ? photosHtml : '<div class="col-12 text-muted" style="font-size: 11px;"><i class="fas fa-info-circle me-1 text-muted"></i>No photos uploaded (a default cover image will be assigned).</div>';
+                        }
+                        if (photosLabel) {
+                            photosLabel.textContent = `FARM PHOTOS (${totalPhotos})`;
+                        }
+
+                        // Sync uploaded documents (PDFs) dynamically
+                        const docInput = document.getElementById('wiz_farm_documents');
+                        const docsList = document.getElementById('rev_documents_list');
+                        const docsLabel = document.getElementById('rev_docs_label');
+                        let totalDocs = 0;
+                        let docsHtml = '';
+
+                        if (docInput && docInput.files && docInput.files.length > 0) {
+                            Array.from(docInput.files).forEach(f => {
+                                totalDocs++;
+                                const sizeKb = (f.size / 1024).toFixed(1);
+                                docsHtml += `<div class="d-flex align-items-center justify-content-between p-2 rounded-3 bg-light border mb-1">
+                                    <div class="d-flex align-items-center text-truncate" style="font-size: 11px;">
+                                        <i class="fas fa-file-pdf text-danger me-2 fs-6"></i>
+                                        <span class="fw-semibold text-dark text-truncate">${f.name}</span>
+                                    </div>
+                                    <span class="badge bg-white text-muted border ms-2" style="font-size: 9px;">${sizeKb} KB</span>
+                                </div>`;
+                            });
+                        }
+
+                        if (docsList) {
+                            docsList.innerHTML = totalDocs > 0 ? docsHtml : '<div class="text-muted" style="font-size: 11px;"><i class="fas fa-info-circle me-1 text-muted"></i>No verification documents attached.</div>';
+                        }
+                        if (docsLabel) {
+                            docsLabel.textContent = `LEGAL & VERIFICATION DOCUMENTS (${totalDocs})`;
                         }
                     }
 
@@ -5702,14 +5825,20 @@
                             </div>
                         </div>
 
-                        <div class="modal-footer bg-light border-0 p-4 pt-0">
+                        <div class="modal-footer bg-light border-0 p-4 pt-0 justify-content-between">
                             <button type="button" class="btn btn-light rounded-pill px-4"
                                 data-bs-dismiss="modal">Cancel</button>
-                            <button type="button" onclick="goToDashboardStep2Payment()"
-                                class="btn btn-success rounded-pill px-4 py-2.5 fw-bold shadow-sm"
-                                style="background-color: #064e3b; border-color: #064e3b;">
-                                Proceed to Payment <i class="fas fa-arrow-right ms-1.5"></i>
-                            </button>
+                            <div class="d-flex gap-2">
+                                <button type="button" onclick="submitDirectTestFromStep1()" class="btn btn-warning rounded-pill px-3 py-2 fw-bold shadow-sm text-dark"
+                                    style="font-size: 12px;" title="Test investment directly without Razorpay">
+                                    <i class="fas fa-flask me-1 text-dark"></i> Direct Test Invest
+                                </button>
+                                <button type="button" onclick="goToDashboardStep2Payment()"
+                                    class="btn btn-success rounded-pill px-4 py-2.5 fw-bold shadow-sm"
+                                    style="background-color: #064e3b; border-color: #064e3b;">
+                                    Proceed to Payment <i class="fas fa-arrow-right ms-1.5"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -5765,6 +5894,14 @@
                                     <p class="text-muted mb-0" style="font-size: 11px;">
                                         Click below to open the <strong>Razorpay Checkout</strong> popup and complete your test payment.
                                     </p>
+
+                                    <div class="alert alert-success bg-success bg-opacity-10 border border-success border-opacity-25 rounded-3 text-start mt-3 mb-0" style="font-size: 11px;">
+                                        <div class="fw-bold text-success mb-1"><i class="fas fa-flask me-1"></i> Razorpay Test Mode Instructions:</div>
+                                        <div class="text-dark">
+                                            • <strong>Instant (Recommended):</strong> In the Razorpay popup, click <strong>Netbanking</strong> (e.g. Bank of Baroda / HDFC / SBI) and click the green <span class="badge bg-success text-white">Success</span> button!<br>
+                                            • <strong>Cards:</strong> Do not use personal/real cards. Use Razorpay test card: <code>4111 1111 1111 1111</code> (Expiry: <code>12/28</code>, CVV: <code>123</code>).
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -5773,10 +5910,16 @@
                                     onclick="backToDashboardStep1()" style="font-size: 12px;">
                                     <i class="fas fa-arrow-left me-1"></i> Back
                                 </button>
-                                <button type="button" id="dash_payRazorpayBtn" onclick="submitRazorpayPayment()" class="btn btn-success rounded-pill px-4 py-2.5 fw-bold shadow-sm"
-                                    style="background-color: #064e3b; border-color: #064e3b; font-size: 13px;">
-                                    <i class="fas fa-bolt me-1.5"></i> Pay via Razorpay
-                                </button>
+                                <div class="d-flex gap-2">
+                                    <button type="button" onclick="submitSimulatedTestPayment()" class="btn btn-warning rounded-pill px-3 py-2.5 fw-bold shadow-sm text-dark"
+                                        style="font-size: 13px;" title="Test without Razorpay gateway">
+                                        <i class="fas fa-flask me-1.5 text-dark"></i> Instant Test Payment (Mock Success)
+                                    </button>
+                                    <button type="button" id="dash_payRazorpayBtn" onclick="submitRazorpayPayment()" class="btn btn-success rounded-pill px-4 py-2.5 fw-bold shadow-sm"
+                                        style="background-color: #064e3b; border-color: #064e3b; font-size: 13px;">
+                                        <i class="fas fa-bolt me-1.5"></i> Pay via Razorpay
+                                    </button>
+                                </div>
                             </div>
                         </form>
                     </div>
@@ -6018,6 +6161,81 @@
                         payBtn.innerHTML = '<i class="fas fa-bolt me-1.5"></i> Pay via Razorpay';
                     }
                 });
+            }
+
+            function submitDirectTestFromStep1() {
+                const select = document.getElementById('dash_modal_farm_id');
+                const amtInput = document.getElementById('dash_step1AmountInput');
+                if (!select || !select.value) {
+                    alert('Please select an active farm plot.');
+                    return;
+                }
+                const opt = select.options[select.selectedIndex];
+                if (opt && (opt.disabled || opt.getAttribute('data-closed') === '1')) {
+                    alert('This farm cycle has reached 100% funding and is closed to new investment pledges.');
+                    return;
+                }
+                const farmId = select.value;
+                const amount = parseFloat(amtInput?.value) || 0;
+                if (amount <= 0) {
+                    alert('Please enter a valid investment amount.');
+                    return;
+                }
+                executeMockPaymentSubmission(farmId, amount);
+            }
+
+            function submitSimulatedTestPayment() {
+                const farmId = document.getElementById('dash_finalFarmIdInput')?.value || document.getElementById('dash_modal_farm_id')?.value;
+                const amount = parseFloat(document.getElementById('dash_finalAmountInput')?.value) || parseFloat(document.getElementById('dash_step1AmountInput')?.value) || 0;
+                executeMockPaymentSubmission(farmId, amount);
+            }
+
+            function executeMockPaymentSubmission(farmId, amount) {
+                if (!farmId || amount <= 0) {
+                    alert('Please select a valid farm and investment amount.');
+                    return;
+                }
+
+                if (!confirm(`Confirm simulated test investment of ₹${amount.toLocaleString('en-IN')} without Razorpay?`)) {
+                    return;
+                }
+
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = "{{ route('admin.investments.store') }}";
+
+                const csrf = document.createElement('input');
+                csrf.type = 'hidden';
+                csrf.name = '_token';
+                csrf.value = "{{ csrf_token() }}";
+                form.appendChild(csrf);
+
+                const farmInput = document.createElement('input');
+                farmInput.type = 'hidden';
+                farmInput.name = 'farm_id';
+                farmInput.value = farmId;
+                form.appendChild(farmInput);
+
+                const amtInput = document.createElement('input');
+                amtInput.type = 'hidden';
+                amtInput.name = 'amount';
+                amtInput.value = amount;
+                form.appendChild(amtInput);
+
+                const statusInput = document.createElement('input');
+                statusInput.type = 'hidden';
+                statusInput.name = 'status';
+                statusInput.value = 'approved';
+                form.appendChild(statusInput);
+
+                const methodInput = document.createElement('input');
+                methodInput.type = 'hidden';
+                methodInput.name = 'payment_method';
+                methodInput.value = 'Instant Test Simulation';
+                form.appendChild(methodInput);
+
+                document.body.appendChild(form);
+                form.submit();
             }
 
             document.addEventListener('DOMContentLoaded', function () {
